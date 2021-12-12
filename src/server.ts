@@ -27,6 +27,28 @@ export function run(settings: ServerSettings) {
     res.redirect(`${settings.dashboardUrl}?server=${server.identity}`);
   });
 
+  app.get('/server', function (req, res) {
+    const servers = workspace.getServers();
+    res.write(servers);
+  });
+
+  app.get('/server/:id', function (req, res) {
+    const id = req.params.id as string;
+    const servers = workspace.getServer(id);
+    res.write(servers);
+  });
+
+  app.get('/server/:id/log', function (req, res) {
+    const id = req.params.id as string;
+    const log = workspace.getServerLog(id);
+    res.write(log);
+  });
+
+  app.post('/killitwithfire', function (req, res) {
+    workspace.killItWithFire();
+    res.write({});
+  });
+
   app.use((err: any, req: any, res: any, next: any) => {
     console.error(err.stack);
     next(err);
