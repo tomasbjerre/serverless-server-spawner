@@ -1,3 +1,5 @@
+import { serverIdentity } from './common';
+
 export interface Server {
   identity: string;
   status: 'STARTED' | 'STARTING' | 'CREATED';
@@ -7,9 +9,10 @@ export class Workspace {
   constructor(private folder: string) {}
 
   public getOrCreate(cloneUrl: string, branch: string): Server {
+    const identity = serverIdentity(cloneUrl, branch);
     return {
       status: 'CREATED',
-      identity: 'asdassadasd',
+      identity,
     };
   }
 

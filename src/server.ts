@@ -1,5 +1,6 @@
-import express, { ErrorRequestHandler } from 'express';
+import express from 'express';
 import { Workspace } from './workspace';
+import { serverIdentity } from './common';
 
 export interface ServerSettings {
   port: number;
@@ -23,8 +24,10 @@ export function run(settings: ServerSettings) {
   app.get('/dispatch', function (req, res) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
+    const identity = serverIdentity(cloneUrl, branch);
+    res.redirect(`${settings.dashboardUrl}?server=${identity}`);
+    //TODO: fork and start server
     const server = workspace.getOrCreate(cloneUrl, branch);
-    res.redirect(`${settings.dashboardUrl}?server=${server.identity}`);
   });
 
   app.get('/server', function (req, res) {
