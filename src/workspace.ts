@@ -5,11 +5,20 @@ export interface Server {
   status: 'STARTED' | 'STARTING' | 'CREATED';
 }
 
+import fs from 'fs'
+
 export class Workspace {
   constructor(private folder: string) {}
 
   public getOrCreate(cloneUrl: string, branch: string): Server {
     const identity = serverIdentity(cloneUrl, branch);
+    // mkdir inside workspace/identity
+    // clone repo, checkout branch
+    // Check if branch up to date with any prev build, read config and return
+    // Find a fitting matcher
+    // Derive name and start command
+    // Save details in workspace/identity
+    // Spawn server
     return {
       status: 'CREATED',
       identity,
@@ -17,6 +26,7 @@ export class Workspace {
   }
 
   public getServers(): Server[] {
+    // collect details in workspace/identity
     return [];
   }
 
@@ -30,8 +40,11 @@ export class Workspace {
 
   public getServerLog(id: string): string {
     const serverlogPath = `${this.folder}/${id}/log`;
-    return `content of ${serverlogPath}`;
+    return    fs.readFileSync(serverlogPath).toString('utf8');
   }
 
-  public killItWithFire(): void {}
+  public killItWithFire(): void {
+    // Stop all spawned servers
+    // remove everything in workspace
+  }
 }
