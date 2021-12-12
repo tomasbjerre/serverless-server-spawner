@@ -24,10 +24,9 @@ export function run(settings: ServerSettings) {
   app.get('/dispatch', function (req, res) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
-    const identity = serverIdentity(cloneUrl, branch);
-    res.redirect(`${settings.dashboardUrl}?server=${identity}`);
-    //TODO: fork and start server
-    const server = workspace.getOrCreate(cloneUrl, branch);
+    const identity = serverIdentity({ cloneUrl, branch });
+    //TODO: Spawn internalIndex to clone and start
+    res.redirect(`${settings.dashboardUrl}#/dispatch?server=${identity}`);
   });
 
   app.get('/server', function (req, res) {

@@ -2,7 +2,7 @@ This is work in progress...
 
 ---
 
-# NPM Java Runner
+# Serverless Server Spawner
 
 [![NPM](https://img.shields.io/npm/v/serverless-server-spawner.svg?style=flat-square)](https://www.npmjs.com/package/serverless-server-spawner)
 
@@ -26,13 +26,9 @@ RESTful API of the this server.
 
 ## `GET /dispatch?cloneurl={cloneUrl}&branch={branch}`
 
-Will take a `cloneUrl` and a `branch`.
+This is the entry point where users would typically be directed when they want to use a server.
 
 Responds with http redirect to the configured dashboard.
-
-```any
-dashboardUrl?server={id}
-```
 
 ## `GET /server/{id}`
 
