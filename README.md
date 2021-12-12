@@ -69,12 +69,3 @@ All servers.
 ## `POST /killitwithfire`
 
 Shut down all servers and cleanup everything.
-
-```json
-[
-  {
-    "id": "{id}",
-    "status": "STARTED|STARTING"
-  }
-]
-```
