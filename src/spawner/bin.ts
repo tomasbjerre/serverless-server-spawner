@@ -14,6 +14,7 @@ console.log(
 const program = new Command()
   .version(pkgJson.version)
   .option('-ws, --workspace <folder>', 'Filesystem to work with.')
+  .option('-mf, --matchers-folder <folder>', 'Folder containing matchers.')
   .option('-p, --port <number>', 'Server port to use', '80')
   .option(
     '-d, --dashboardUrl <url>',

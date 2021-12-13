@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import { Command } from 'commander';
-import { getServerIdentity } from './common';
+import { getServerIdentity } from '../common/common';
 const pkgJson = require('../package.json');
 const { spawn } = require('child_process');
 const events = require('events');
@@ -41,7 +41,7 @@ if (program.opts().spawnServer) {
   eventEmitter.on('finished', () => {
     // Check if branch up to date with any prev build, read config and return
     // Find a fitting matcher
-    // Derive name and start command
+    // Derive name and start command with matcher
     // Save details in workspace/identity
     // Spawn server
   });

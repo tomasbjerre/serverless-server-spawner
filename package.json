@@ -6,7 +6,7 @@
     "format": "prettier --write .",
     "release": "npm run build && npm version patch && npm publish && git push --follow-tags"
   },
-  "bin": "./lib/index.js",
+  "bin": "./lib/src/spawner/bin.js",
   "dependencies": {
     "commander": "^8.3.0",
     "express": "^4.17.1",

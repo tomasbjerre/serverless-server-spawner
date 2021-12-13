@@ -1,11 +1,5 @@
-import { serverIdentity } from './common';
-
-export interface Server {
-  identity: string;
-  status: 'STARTED' | 'STARTING' | 'CREATED';
-}
-
 import fs from 'fs';
+import { Server, ServerId, ServerLogFile } from './Model';
 
 export class Workspace {
   constructor(private folder: string) {}
@@ -15,15 +9,15 @@ export class Workspace {
     return [];
   }
 
-  public getServer(id: string): Server {
-    const found = this.getServers().find((it) => it.identity == id);
+  public getServer(id: ServerId): Server {
+    const found = this.getServers().find((it) => it.id == id);
     if (found) {
       return found;
     }
     throw `${id} not found`;
   }
 
-  public getServerLog(id: string): string {
+  public getServerLog(id: ServerId, file: ServerLogFile): string {
     const serverlogPath = `${this.folder}/${id}/log`;
     return fs.readFileSync(serverlogPath).toString('utf8');
   }

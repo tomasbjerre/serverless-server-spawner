@@ -1,21 +1,8 @@
 import express from 'express';
-import { Workspace } from './workspace';
-import { serverIdentity } from './common';
-
-export interface ServerSettings {
-  port: number;
-  workspace: string;
-  dashboardUrl: string;
-}
-
-process
-  .on('unhandledRejection', (reason, p) => {
-    console.error(reason, 'Unhandled Rejection at Promise', p);
-  })
-  .on('uncaughtException', (err) => {
-    console.error(err, 'Uncaught Exception thrown');
-    process.exit(1);
-  });
+import { Workspace } from '../common/workspace';
+import { serverIdentity } from '../common/common';
+import { ServerSettings } from './Model';
+import { ServerId, ServerLogFile } from '../common/Model';
 
 export function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
@@ -25,7 +12,7 @@ export function run(settings: ServerSettings) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
     const identity = serverIdentity({ cloneUrl, branch });
-    //TODO: Spawn internalIndex to clone and start
+    //TODO: Spawn internal/bin.js to clone and start
     res.redirect(`${settings.dashboardUrl}#/dispatch?server=${identity}`);
   });
 
@@ -40,10 +27,18 @@ export function run(settings: ServerSettings) {
     res.write(servers);
   });
 
-  app.get('/server/:id/log', function (req, res) {
-    const id = req.params.id as string;
-    const log = workspace.getServerLog(id);
-    res.write(log);
+  function getLog(log: ServerLogFile, req: any, res: any): void {
+    const id = req.params.id as ServerId;
+    const logContent = workspace.getServerLog(id, log);
+    res.write(logContent);
+  }
+
+  app.get('/server/:id/log/clone', function (req, res) {
+    getLog('clone', req, res);
+  });
+
+  app.get('/server/:id/log/run', function (req, res) {
+    getLog('run', req, res);
   });
 
   app.post('/killitwithfire', function (req, res) {
