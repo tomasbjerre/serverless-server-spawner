@@ -3,7 +3,8 @@ import path from 'path';
 import { Server, ServerId, ServerLogFile } from './Model';
 import { randomUUID, validateUuid } from './common';
 
-const REPO_FILE = 'repo.json';
+export const SERVER_FILE = 'server.json';
+export const REPO_FOLDER = 'repo';
 
 export class Workspace {
   constructor(private folder: string) {}
@@ -23,7 +24,7 @@ export class Workspace {
     return fs
       .readdirSync(this.folder)
       .filter((it) => validateUuid(it))
-      .map((it) => path.join(this.folder, it, REPO_FILE))
+      .map((it) => path.join(this.folder, it, SERVER_FILE))
       .map((it) => fs.readFileSync(it, 'utf-8'))
       .map((it) => JSON.parse(it) as Server);
   }
@@ -57,8 +58,9 @@ export class Workspace {
       id: serverId,
       status: 'CREATED',
       pid: undefined,
+      name: undefined,
     };
-    fs.writeFileSync(path.join(serverFolder, REPO_FILE), repo);
+    fs.writeFileSync(path.join(serverFolder, SERVER_FILE), repo);
     return serverId;
   }
 }
