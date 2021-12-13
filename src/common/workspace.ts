@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Server, ServerId, ServerLogFile } from './Model';
+import { Server, ServerId, ServerLogFile as ServerProcessKind } from './Model';
 import { randomUUID, validateUuid } from './common';
 
 const SERVER_FILE = 'server.json';
@@ -50,9 +50,22 @@ export class Workspace {
     return path.join(this.folder, id, SERVER_FILE);
   }
 
-  public getServerLogContent(id: ServerId, file: ServerLogFile): string {
-    const serverlogPath = path.join(this.folder, id, file);
+  public getServerLog(id: ServerId, kind: ServerProcessKind): string {
+    return path.join(this.folder, id, kind);
+  }
+
+  public getServerLogContent(id: ServerId, kind: ServerProcessKind): string {
+    const serverlogPath = this.getServerLog(id, kind);
     return fs.readFileSync(serverlogPath).toString('utf8');
+  }
+
+  public getServerPidFile(id: ServerId, kind: ServerProcessKind) {
+    return path.join(this.folder, id, `${kind}.pid`);
+  }
+
+  public getServerPid(id: ServerId, kind: ServerProcessKind) {
+    const pidFile = this.getServerPidFile(id, kind);
+    return fs.readFileSync(pidFile, 'utf8');
   }
 
   public removeServer(id: ServerId): void {

@@ -3,11 +3,12 @@
 import fs from 'fs';
 import path from 'path';
 import { Command, Option } from 'commander';
-import { randomUUID, getMatched } from '../common/common';
+import { getMatched } from '../common/common';
 import { Workspace } from '../common/workspace';
-import { ServerLogFile, Server } from '../common/Model';
+import { Server } from '../common/Model';
+import { spawnProcess } from '../common/process';
 const pkgJson = require('../package.json');
-const { spawn, execSync } = require('child_process');
+const { execSync } = require('child_process');
 const events = require('events');
 
 const program = new Command()
@@ -22,12 +23,10 @@ program.parse(process.argv);
 
 const eventEmitter = new events.EventEmitter();
 const serverDir = path.join(program.opts().workspace, program.opts().server);
+const workspace = new Workspace(program.opts().workspace);
 
 function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
-  const cloneLogFile = fs.createWriteStream(
-    path.join(serverDir, 'clone' as ServerLogFile)
-  );
-  const command = spawn(
+  const p = spawnProcess(
     'git',
     [
       'clone',
@@ -38,11 +37,11 @@ function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
       '1',
       cloneFolder,
     ],
+    workspace.getServerLog(serverToSpawn.id, 'clone'),
+    workspace.getServerPidFile(serverToSpawn.id, 'clone'),
     { cwd: serverDir }
   );
-  command.stdout.pipe(cloneLogFile);
-  command.stderr.pipe(cloneLogFile);
-  command.on('close', (code: number) => {
+  p.on('close', (code: number) => {
     if (code !== 0) {
       eventEmitter.emit('error');
     }
@@ -59,7 +58,6 @@ function spawnServer(folder: string, startCommand: string): number {
 }
 
 if (program.opts().task == 'spawn') {
-  const workspace = new Workspace(program.opts().workspace);
   const serverId = program.opts().server;
   const serverToSpawn = workspace.getServer(serverId);
 

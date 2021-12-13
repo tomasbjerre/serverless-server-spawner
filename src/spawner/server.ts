@@ -13,6 +13,7 @@ export function run(settings: ServerSettings) {
     const branch = req.query.branch as string;
     const serverId = workspace.getOrCreate(cloneUrl, branch);
     const spawnLog = workspace.getServerSpawnLog(serverId);
+    const spawnPidFile = workspace.getServerPidFile(serverId, 'spawn');
     spawnProcess(
       '../internal/bin',
       [
@@ -25,7 +26,8 @@ export function run(settings: ServerSettings) {
         '--server',
         serverId,
       ],
-      spawnLog
+      spawnLog,
+      spawnPidFile
     );
     res.redirect(`${settings.dashboardUrl}#/dispatch?server=${serverId}`);
   });

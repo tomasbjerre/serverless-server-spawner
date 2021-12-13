@@ -1,4 +1,5 @@
 import { ProcessId } from './Model';
+import fs from 'fs';
 const { spawn } = require('child_process');
 
 export const shutdownProcess = (
@@ -24,8 +25,19 @@ export const shutdownProcess = (
     }, 100);
   });
 
-export function spawnProcess(command: string, args: any[], logFile: string) {
-  const p = spawn(command, args);
+export function spawnProcess(
+  command: string,
+  args: any[],
+  logFile: string,
+  pidFile: string,
+  opts = {}
+): any {
+  const p = spawn(command, args, opts);
+  fs.writeFileSync(pidFile, p.pid);
   p.stdout.pipe(logFile);
   p.stderr.pipe(logFile);
+  p.on('close', () => {
+    fs.unlinkSync(pidFile);
+  });
+  return p;
 }
