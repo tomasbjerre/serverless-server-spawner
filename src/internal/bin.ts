@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { Command, Option } from 'commander';
 import { randomUUID, getMatched } from '../common/common';
-import { Workspace, REPO_FOLDER, SERVER_FILE } from '../common/workspace';
+import { Workspace } from '../common/workspace';
 import { ServerLogFile, Server } from '../common/Model';
 const pkgJson = require('../package.json');
 const { spawn, execSync } = require('child_process');
@@ -55,15 +55,16 @@ function getGitRevision(folder: string): string {
 }
 
 function spawnServer(folder: string, startCommand: string): number {
-  return -1;//TODO
+  return -1; //TODO
 }
 
 if (program.opts().task == 'spawn') {
   const workspace = new Workspace(program.opts().workspace);
-  const serverToSpawn = workspace.getServer(program.opts().server);
+  const serverId = program.opts().server;
+  const serverToSpawn = workspace.getServer(serverId);
 
-  const cloneFolder = path.join(serverDir, randomUUID());
-  const repoFolder = path.join(serverDir, REPO_FOLDER);
+  const cloneFolder = workspace.getServerTemporaryFolder(serverId);
+  const repoFolder = workspace.getServerRepoFolder(serverId);
   cloneRepo(cloneFolder, serverToSpawn);
 
   eventEmitter.once('success', () => {
@@ -77,7 +78,7 @@ if (program.opts().task == 'spawn') {
     }
     const matched = getMatched(repoFolder);
     const pid = spawnServer(cloneFolder, matched.startCommand);
-    const serverFile = path.join(serverDir, SERVER_FILE);
+    const serverFile = workspace.getServerFile(serverId);
     serverToSpawn.pid = pid;
     serverToSpawn.name = matched.name;
     serverToSpawn.status = 'STARTING';

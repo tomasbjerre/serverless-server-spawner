@@ -2,7 +2,7 @@ import express from 'express';
 import { Workspace } from '../common/workspace';
 import { ServerSettings } from './Model';
 import { ServerId, ServerLogFile } from '../common/Model';
-import { shutdownProcess } from '../common/process';
+import { shutdownProcess, spawnProcess } from '../common/process';
 
 export function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
@@ -12,7 +12,21 @@ export function run(settings: ServerSettings) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
     const serverId = workspace.getOrCreate(cloneUrl, branch);
-    //TODO: Spawn internal/bin.js to clone and start
+    const spawnLog = workspace.getServerSpawnLog(serverId);
+    spawnProcess(
+      '../internal/bin',
+      [
+        '--workspace',
+        settings.workspace,
+        '--matchers-folder',
+        settings.matchersFolder,
+        '--task',
+        'spawn',
+        '--server',
+        serverId,
+      ],
+      spawnLog
+    );
     res.redirect(`${settings.dashboardUrl}#/dispatch?server=${serverId}`);
   });
 

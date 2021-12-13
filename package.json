@@ -2,11 +2,11 @@
   "name": "serverless-server-spawner",
   "version": "0.0.1",
   "scripts": {
-    "build": "npm run format && tsc -p .",
+    "build": "rm -rf lib/* && npm run format && tsc -p .",
     "format": "prettier --write .",
     "release": "npm run build && npm version patch && npm publish && git push --follow-tags"
   },
-  "bin": "./lib/src/spawner/bin.js",
+  "bin": "./lib/spawner/bin.js",
   "dependencies": {
     "commander": "^8.3.0",
     "express": "^4.17.1",

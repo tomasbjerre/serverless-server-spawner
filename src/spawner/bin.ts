@@ -3,7 +3,7 @@
 import { run } from './server';
 import { Command } from 'commander';
 const figlet = require('figlet');
-const pkgJson = require('../package.json');
+const pkgJson = require('../../package.json');
 
 console.log(
   figlet.textSync('Serverless\n Server\n  Spawner', {
@@ -33,13 +33,16 @@ const dashboardUrl = program.opts().dashboardUrl;
 const workspace =
   program.opts().workspace ||
   process.cwd() + '/serverless-server-spawner-workspace';
+const matchersFolder = program.opts().matchersFolder;
 console.log(`
  port: ${port}
  dashboardUrl: ${dashboardUrl}
  workspace: ${workspace}
+ matchersFolder: ${matchersFolder}
 `);
 run({
   port,
   workspace,
   dashboardUrl,
+  matchersFolder,
 });

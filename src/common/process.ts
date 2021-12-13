@@ -1,4 +1,5 @@
 import { ProcessId } from './Model';
+const { spawn } = require('child_process');
 
 export const shutdownProcess = (
   pid: ProcessId,
@@ -18,7 +19,13 @@ export const shutdownProcess = (
       }
       if ((count += 100) > timeout) {
         console.log(`giving up on ${pid}`);
-        reject(new Error('Timeout process kill'));
+        reject(new Error(`Timeout process kill`));
       }
     }, 100);
   });
+
+export function spawnProcess(command: string, args: any[], logFile: string) {
+  const p = spawn(command, args);
+  p.stdout.pipe(logFile);
+  p.stderr.pipe(logFile);
+}

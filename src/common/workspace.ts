@@ -3,8 +3,9 @@ import path from 'path';
 import { Server, ServerId, ServerLogFile } from './Model';
 import { randomUUID, validateUuid } from './common';
 
-export const SERVER_FILE = 'server.json';
-export const REPO_FOLDER = 'repo';
+const SERVER_FILE = 'server.json';
+const REPO_FOLDER = 'repo';
+const SPAWN_LOG = 'spawn.log';
 
 export class Workspace {
   constructor(private folder: string) {}
@@ -37,6 +38,18 @@ export class Workspace {
     throw `${id} not found`;
   }
 
+  public getServerRepoFolder(id: ServerId): string {
+    return path.join(this.folder, id, REPO_FOLDER);
+  }
+
+  public getServerTemporaryFolder(id: ServerId): string {
+    return path.join(this.folder, id, randomUUID());
+  }
+
+  public getServerFile(id: ServerId): string {
+    return path.join(this.folder, id, SERVER_FILE);
+  }
+
   public getServerLogContent(id: ServerId, file: ServerLogFile): string {
     const serverlogPath = path.join(this.folder, id, file);
     return fs.readFileSync(serverlogPath).toString('utf8');
@@ -46,6 +59,10 @@ export class Workspace {
     const server = this.getServer(id);
     const serverFolder = path.join(this.folder, server.id);
     fs.unlinkSync(serverFolder);
+  }
+
+  public getServerSpawnLog(id: ServerId) {
+    return path.join(this.folder, id, SPAWN_LOG);
   }
 
   private createServer(cloneUrl: string, branch: string): ServerId {
