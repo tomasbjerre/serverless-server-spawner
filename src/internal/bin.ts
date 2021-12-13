@@ -37,7 +37,7 @@ function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
       '1',
       cloneFolder,
     ],
-    workspace.getServerLog(serverToSpawn.id, 'clone'),
+    workspace.getServerLogFile(serverToSpawn.id, 'clone'),
     workspace.getServerPidFile(serverToSpawn.id, 'clone'),
     { cwd: serverDir }
   );
@@ -53,8 +53,13 @@ function getGitRevision(folder: string): string {
   return execSync('git', ['git', 'rev-parse', 'HEAD'], { cwd: folder });
 }
 
-function spawnServer(folder: string, startCommand: string): number {
-  return -1; //TODO
+function spawnServer(serverId: string, folder: string, startCommand: string) {
+  const logFile = workspace.getServerLogFile(serverId, 'run');
+  const pidFile = workspace.getServerPidFile(serverId, 'run');
+  spawnProcess(startCommand, [], logFile, pidFile, {
+    shell: true,
+    cwd: folder,
+  });
 }
 
 if (program.opts().task == 'spawn') {
@@ -75,9 +80,8 @@ if (program.opts().task == 'spawn') {
       }
     }
     const matched = getMatched(repoFolder);
-    const pid = spawnServer(cloneFolder, matched.startCommand);
+    spawnServer(serverId, cloneFolder, matched.startCommand);
     const serverFile = workspace.getServerFile(serverId);
-    serverToSpawn.pid = pid;
     serverToSpawn.name = matched.name;
     serverToSpawn.status = 'STARTING';
     fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));

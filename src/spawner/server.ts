@@ -12,7 +12,7 @@ export function run(settings: ServerSettings) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
     const serverId = workspace.getOrCreate(cloneUrl, branch);
-    const spawnLog = workspace.getServerSpawnLog(serverId);
+    const spawnLog = workspace.getServerLogFile(serverId, 'spawn');
     const spawnPidFile = workspace.getServerPidFile(serverId, 'spawn');
     spawnProcess(
       '../internal/bin',
@@ -45,7 +45,7 @@ export function run(settings: ServerSettings) {
 
   function getLog(log: ServerLogFile, req: any, res: any): void {
     const id = req.params.id as ServerId;
-    const logContent = workspace.getServerLogContent(id, log);
+    const logContent = workspace.getServerLog(id, log);
     res.write(logContent);
   }
 
@@ -59,10 +59,8 @@ export function run(settings: ServerSettings) {
 
   app.post('/killitwithfire', async function (req, res) {
     for (let server of workspace.getServers()) {
-      if (!server.pid) {
-        throw `Cannot kill ${server.id} because it has no pid`;
-      }
-      await shutdownProcess(server.pid);
+      const pid = workspace.getServerPid(server.id, 'run');
+      await shutdownProcess(pid);
       workspace.removeServer(server.id);
     }
     res.write({});

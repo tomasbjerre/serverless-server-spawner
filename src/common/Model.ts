@@ -10,7 +10,6 @@ export interface Matched {
 }
 
 export interface Server {
-  pid: ProcessId | undefined;
   name: string | undefined;
   id: ServerId;
   cloneUrl: string;

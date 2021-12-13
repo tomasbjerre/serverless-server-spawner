@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import { Server, ServerId, ServerLogFile as ServerProcessKind } from './Model';
+import {
+  Server,
+  ServerId,
+  ServerLogFile as ServerProcessKind,
+  ProcessId,
+} from './Model';
 import { randomUUID, validateUuid } from './common';
 
 const SERVER_FILE = 'server.json';
@@ -50,12 +55,12 @@ export class Workspace {
     return path.join(this.folder, id, SERVER_FILE);
   }
 
-  public getServerLog(id: ServerId, kind: ServerProcessKind): string {
+  public getServerLogFile(id: ServerId, kind: ServerProcessKind): string {
     return path.join(this.folder, id, kind);
   }
 
-  public getServerLogContent(id: ServerId, kind: ServerProcessKind): string {
-    const serverlogPath = this.getServerLog(id, kind);
+  public getServerLog(id: ServerId, kind: ServerProcessKind): string {
+    const serverlogPath = this.getServerLogFile(id, kind);
     return fs.readFileSync(serverlogPath).toString('utf8');
   }
 
@@ -65,17 +70,13 @@ export class Workspace {
 
   public getServerPid(id: ServerId, kind: ServerProcessKind) {
     const pidFile = this.getServerPidFile(id, kind);
-    return fs.readFileSync(pidFile, 'utf8');
+    return parseInt(fs.readFileSync(pidFile, 'utf8')) as ProcessId;
   }
 
   public removeServer(id: ServerId): void {
     const server = this.getServer(id);
     const serverFolder = path.join(this.folder, server.id);
     fs.unlinkSync(serverFolder);
-  }
-
-  public getServerSpawnLog(id: ServerId) {
-    return path.join(this.folder, id, SPAWN_LOG);
   }
 
   private createServer(cloneUrl: string, branch: string): ServerId {
@@ -87,7 +88,6 @@ export class Workspace {
       branch,
       id: serverId,
       status: 'CREATED',
-      pid: undefined,
       name: undefined,
     };
     fs.writeFileSync(path.join(serverFolder, SERVER_FILE), repo);
