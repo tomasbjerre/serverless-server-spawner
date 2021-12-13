@@ -55,7 +55,7 @@ function getGitRevision(folder: string): string {
 }
 
 function spawnServer(folder: string, startCommand: string): number {
-  return -1;
+  return -1;//TODO
 }
 
 if (program.opts().task == 'spawn') {
