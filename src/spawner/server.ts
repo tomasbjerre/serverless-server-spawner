@@ -1,8 +1,8 @@
 import express from 'express';
 import { Workspace } from '../common/workspace';
-import { serverIdentity } from '../common/common';
 import { ServerSettings } from './Model';
 import { ServerId, ServerLogFile } from '../common/Model';
+import { shutdownProcess } from '../common/process';
 
 export function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
@@ -11,9 +11,9 @@ export function run(settings: ServerSettings) {
   app.get('/dispatch', function (req, res) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
-    const identity = serverIdentity({ cloneUrl, branch });
+    const serverId = workspace.getOrCreate(cloneUrl, branch);
     //TODO: Spawn internal/bin.js to clone and start
-    res.redirect(`${settings.dashboardUrl}#/dispatch?server=${identity}`);
+    res.redirect(`${settings.dashboardUrl}#/dispatch?server=${serverId}`);
   });
 
   app.get('/server', function (req, res) {
@@ -29,7 +29,7 @@ export function run(settings: ServerSettings) {
 
   function getLog(log: ServerLogFile, req: any, res: any): void {
     const id = req.params.id as ServerId;
-    const logContent = workspace.getServerLog(id, log);
+    const logContent = workspace.getServerLogContent(id, log);
     res.write(logContent);
   }
 
@@ -41,8 +41,14 @@ export function run(settings: ServerSettings) {
     getLog('run', req, res);
   });
 
-  app.post('/killitwithfire', function (req, res) {
-    workspace.killItWithFire();
+  app.post('/killitwithfire', async function (req, res) {
+    for (let server of workspace.getServers()) {
+      if (!server.pid) {
+        throw `Cannot kill ${server.id} because it has no pid`;
+      }
+      await shutdownProcess(server.pid);
+      workspace.removeServer(server.id);
+    }
     res.write({});
   });
 

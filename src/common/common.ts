@@ -1,12 +1,13 @@
-export interface ServerIdentity {
-  cloneUrl: string;
-  branch: string;
+import { v4 as uuidv4, validate } from 'uuid';
+
+export function randomString(length = 10) {
+  return (Math.random() + 1).toString(36).substring(length);
 }
 
-export function serverIdentity(serverIdentity: ServerIdentity) {
-  return Buffer.from(JSON.stringify(serverIdentity)).toString('base64');
+export function randomUUID() {
+  return uuidv4();
 }
 
-export function getServerIdentity(serverIdentity: string): ServerIdentity {
-  return JSON.parse(new Buffer(serverIdentity, 'base64').toString('ascii'));
+export function validateUuid(it: string) {
+  return validate(it);
 }
