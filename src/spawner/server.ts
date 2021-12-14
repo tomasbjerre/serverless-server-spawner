@@ -69,6 +69,14 @@ export function run(settings: ServerSettings) {
     getLog('spawn', req, res);
   });
 
+  app.get('/cloneUrls', function (req, res) {
+    //TODO GitService
+  });
+
+  app.get('/cloneUrls/:cloneUrl/branches', function (req, res) {
+    //TODO: GitService
+  });
+
   app.post('/killitwithfire', async function (req, res) {
     for (let server of workspace.getServers()) {
       const pid = workspace.getServerPid(server.id, 'run');

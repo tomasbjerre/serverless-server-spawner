@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { run } from './server';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 const figlet = require('figlet');
 const pkgJson = require('../../package.json');
 
@@ -25,6 +25,14 @@ const program = new Command()
     '-ttl, --time-to-live <minutes>',
     'Time to keep server running after it was started.',
     '600'
+  )
+  .addOption(
+    new Option(
+      '-g, --git-service <serive>',
+      'Name of git-service to use, if any'
+    )
+      .choices(['none', 'bitbucket-server'])
+      .default('none')
   );
 program.parse(process.argv);
 
@@ -35,12 +43,14 @@ const workspace =
   process.cwd() + '/serverless-server-spawner-workspace';
 const matchersFolder = program.opts().matchersFolder;
 const timeToLive = program.opts().timeToLive;
+const gitService = program.opts().gitService;
 console.log(`
  port: ${port}
  dashboardUrl: ${dashboardUrl}
  workspace: ${workspace}
  matchersFolder: ${matchersFolder}
  timeToLive: ${timeToLive}
+ gitService: ${gitService}
 `);
 run({
   port,
@@ -48,4 +58,5 @@ run({
   dashboardUrl,
   matchersFolder,
   timeToLive,
+  gitService,
 });
