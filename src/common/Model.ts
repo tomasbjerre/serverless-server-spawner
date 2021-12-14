@@ -25,11 +25,26 @@ export interface Matcher {
 export interface CloneUrl {
   id: string;
   url: string;
-  name: string;
 }
 
 export interface Branch {
   id: string;
   branch: string;
-  name: string;
+}
+
+export interface BitbucketServer {
+  personalAccessToken: string;
+  url: string;
+}
+
+export interface GitServices {
+  bitbucketServer: BitbucketServer | undefined;
+}
+export interface ServerSettings {
+  port: number;
+  workspace: string;
+  dashboardUrl: string;
+  matchersFolder: string;
+  timeToLive: number;
+  gitService: GitServices;
 }

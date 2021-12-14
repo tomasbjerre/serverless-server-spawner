@@ -1,7 +1,6 @@
 import express from 'express';
 import { Workspace } from '../common/workspace';
-import { ServerSettings } from './Model';
-import { ServerId, ServerLogFile } from '../common/Model';
+import { ServerId, ServerLogFile, ServerSettings } from '../common/Model';
 import { shutdownProcess, spawnProcess } from '../common/process';
 import { GitService } from '../common/GitService';
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { run } from './server';
-import { Command, Option } from 'commander';
-import { BitbucketServer } from './Model';
+import { Command } from 'commander';
+import { BitbucketServer } from '../common/Model';
 const figlet = require('figlet');
 const pkgJson = require('../../package.json');
 

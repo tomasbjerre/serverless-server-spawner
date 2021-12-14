@@ -1,5 +1,4 @@
-import { GitServices, BitbucketServer } from '../spawner/Model';
-import { CloneUrl, Branch } from './Model';
+import { CloneUrl, Branch, GitServices, BitbucketServer } from './Model';
 
 export abstract class GitService {
   public static from(gitService: GitServices): GitService {
@@ -17,11 +16,11 @@ export class BitbucketService extends GitService {
     super();
   }
 
-  getCloneUrls() {
-    return [];
+  getCloneUrls(): CloneUrl[] {
+    return []; //TODO
   }
 
-  getBranches() {
-    return [];
+  getBranches(): Branch[] {
+    return []; //TODO
   }
 }
