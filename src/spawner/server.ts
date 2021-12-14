@@ -3,6 +3,7 @@ import { Workspace } from '../common/workspace';
 import { ServerSettings } from './Model';
 import { ServerId, ServerLogFile } from '../common/Model';
 import { shutdownProcess, spawnProcess } from '../common/process';
+import { GitService } from '../common/GitService';
 
 export function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
@@ -70,11 +71,13 @@ export function run(settings: ServerSettings) {
   });
 
   app.get('/cloneUrls', function (req, res) {
-    //TODO GitService
+    const cloneUrls = GitService.from(settings.gitService).getCloneUrls();
+    res.write(cloneUrls);
   });
 
   app.get('/cloneUrls/:cloneUrl/branches', function (req, res) {
-    //TODO: GitService
+    const cloneUrls = GitService.from(settings.gitService).getBranches();
+    res.write(cloneUrls);
   });
 
   app.post('/killitwithfire', async function (req, res) {

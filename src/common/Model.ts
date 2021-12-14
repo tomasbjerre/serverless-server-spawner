@@ -21,3 +21,15 @@ export interface Matcher {
   getStartCommand(repoFolder: string): string;
   isMatching(repoFolder: string): boolean;
 }
+
+export interface CloneUrl {
+  id: string;
+  url: string;
+  name: string;
+}
+
+export interface Branch {
+  id: string;
+  branch: string;
+  name: string;
+}

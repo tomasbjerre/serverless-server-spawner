@@ -2,6 +2,7 @@
 
 import { run } from './server';
 import { Command, Option } from 'commander';
+import { BitbucketServer } from './Model';
 const figlet = require('figlet');
 const pkgJson = require('../../package.json');
 
@@ -26,13 +27,13 @@ const program = new Command()
     'Time to keep server running after it was started.',
     '600'
   )
-  .addOption(
-    new Option(
-      '-g, --git-service <serive>',
-      'Name of git-service to use, if any'
-    )
-      .choices(['none', 'bitbucket-server'])
-      .default('none')
+  .option(
+    '-bbsat, --bitbucket-server-access-token <token>',
+    'Bitbucket Server access token'
+  )
+  .option(
+    '-bbsu, --bitbucket-server-url <url>',
+    'Bitbucket Server base URL to use for REST integration'
   );
 program.parse(process.argv);
 
@@ -43,14 +44,21 @@ const workspace =
   process.cwd() + '/serverless-server-spawner-workspace';
 const matchersFolder = program.opts().matchersFolder;
 const timeToLive = program.opts().timeToLive;
-const gitService = program.opts().gitService;
+const bitbucketServerAccessToken = program.opts().bitbucketServerAccessToken;
+const bitbucketServerUrl = program.opts().bitbucketServerUrl;
+const bitbucketServer = bitbucketServerAccessToken
+  ? ({
+      url: bitbucketServerUrl,
+      personalAccessToken: bitbucketServerAccessToken,
+    } as BitbucketServer)
+  : undefined;
 console.log(`
  port: ${port}
  dashboardUrl: ${dashboardUrl}
  workspace: ${workspace}
  matchersFolder: ${matchersFolder}
  timeToLive: ${timeToLive}
- gitService: ${gitService}
+ bitbucketServer: ${bitbucketServer}
 `);
 run({
   port,
@@ -58,5 +66,7 @@ run({
   dashboardUrl,
   matchersFolder,
   timeToLive,
-  gitService,
+  gitService: {
+    bitbucketServer,
+  },
 });
