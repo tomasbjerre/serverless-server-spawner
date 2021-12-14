@@ -3,4 +3,5 @@ export interface ServerSettings {
   workspace: string;
   dashboardUrl: string;
   matchersFolder: string;
+  timeToLive: number;
 }

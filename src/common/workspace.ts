@@ -10,7 +10,6 @@ import { randomUUID, validateUuid } from './common';
 
 const SERVER_FILE = 'server.json';
 const REPO_FOLDER = 'repo';
-const SPAWN_LOG = 'spawn.log';
 
 export class Workspace {
   constructor(private folder: string) {}
@@ -35,6 +34,12 @@ export class Workspace {
       .map((it) => JSON.parse(it) as Server);
   }
 
+  public getServerState(id: ServerId): ServerProcessKind | undefined {
+    if (this.getServerPid(id, 'clone')) return 'clone';
+    if (this.getServerPid(id, 'spawn')) return 'spawn';
+    if (this.getServerPid(id, 'run')) return 'run';
+    return undefined;
+  }
   public getServer(id: ServerId): Server {
     const found = this.getServers().find((it) => it.id == id);
     if (found) {
@@ -68,9 +73,12 @@ export class Workspace {
     return path.join(this.folder, id, `${kind}.pid`);
   }
 
-  public getServerPid(id: ServerId, kind: ServerProcessKind) {
+  public getServerPid(id: ServerId, kind: ServerProcessKind): ProcessId {
     const pidFile = this.getServerPidFile(id, kind);
-    return parseInt(fs.readFileSync(pidFile, 'utf8')) as ProcessId;
+    if (fs.existsSync(pidFile)) {
+      return parseInt(fs.readFileSync(pidFile, 'utf8'));
+    }
+    return -1;
   }
 
   public removeServer(id: ServerId): void {
@@ -87,7 +95,6 @@ export class Workspace {
       cloneUrl,
       branch,
       id: serverId,
-      status: 'CREATED',
       name: undefined,
     };
     fs.writeFileSync(path.join(serverFolder, SERVER_FILE), repo);

@@ -7,6 +7,7 @@ import { getMatched } from '../common/common';
 import { Workspace } from '../common/workspace';
 import { Server } from '../common/Model';
 import { spawnProcess } from '../common/process';
+import { SIGTERM } from 'constants';
 const pkgJson = require('../package.json');
 const { execSync } = require('child_process');
 const events = require('events');
@@ -16,6 +17,12 @@ const program = new Command()
   .option('-ws, --workspace <folder>')
   .option('-s, --server <id>')
   .option('-mf, --matchers-folder <folder>', 'Folder containing matchers.')
+  .option('-t, --matchers-folder <folder>', 'Folder containing matchers.')
+  .option(
+    '-ttl, --time-to-live <minutes>',
+    'Time to keep server running after it was started.',
+    '600'
+  )
   .addOption(
     new Option('-t, --task <task>', 'task to perform').choices(['spawn'])
   );
@@ -24,6 +31,7 @@ program.parse(process.argv);
 const eventEmitter = new events.EventEmitter();
 const serverDir = path.join(program.opts().workspace, program.opts().server);
 const workspace = new Workspace(program.opts().workspace);
+const timeToLive = program.opts().timeToLive;
 
 function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
   const p = spawnProcess(
@@ -53,10 +61,14 @@ function getGitRevision(folder: string): string {
   return execSync('git', ['git', 'rev-parse', 'HEAD'], { cwd: folder });
 }
 
-function spawnServer(serverId: string, folder: string, startCommand: string) {
+function spawnServer(
+  serverId: string,
+  folder: string,
+  startCommand: string
+): any {
   const logFile = workspace.getServerLogFile(serverId, 'run');
   const pidFile = workspace.getServerPidFile(serverId, 'run');
-  spawnProcess(startCommand, [], logFile, pidFile, {
+  return spawnProcess(startCommand, [], logFile, pidFile, {
     shell: true,
     cwd: folder,
   });
@@ -80,14 +92,22 @@ if (program.opts().task == 'spawn') {
       }
     }
     const matched = getMatched(repoFolder);
-    spawnServer(serverId, cloneFolder, matched.startCommand);
+    const spawnedServerProcess = spawnServer(
+      serverId,
+      cloneFolder,
+      matched.startCommand
+    );
     const serverFile = workspace.getServerFile(serverId);
     serverToSpawn.name = matched.name;
-    serverToSpawn.status = 'STARTING';
     fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
     eventEmitter.once('success', () => {
-      serverToSpawn.status = 'STARTED';
       fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
+      setTimeout(() => {
+        console.log(
+          `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
+        );
+        process.kill(spawnedServerProcess.pid, SIGTERM);
+      }, timeToLive * 60 * 1000);
     });
   });
 }

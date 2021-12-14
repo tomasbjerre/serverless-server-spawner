@@ -25,6 +25,8 @@ export function run(settings: ServerSettings) {
         'spawn',
         '--server',
         serverId,
+        '--time-to-live',
+        settings.timeToLive,
       ],
       spawnLog,
       spawnPidFile
@@ -43,6 +45,12 @@ export function run(settings: ServerSettings) {
     res.write(servers);
   });
 
+  app.get('/server/:id/state', function (req, res) {
+    const id = req.params.id as ServerId;
+    const serverState = workspace.getServerState(id);
+    res.write({ state: serverState });
+  });
+
   function getLog(log: ServerLogFile, req: any, res: any): void {
     const id = req.params.id as ServerId;
     const logContent = workspace.getServerLog(id, log);
@@ -55,6 +63,10 @@ export function run(settings: ServerSettings) {
 
   app.get('/server/:id/log/run', function (req, res) {
     getLog('run', req, res);
+  });
+
+  app.get('/server/:id/log/spawn', function (req, res) {
+    getLog('spawn', req, res);
   });
 
   app.post('/killitwithfire', async function (req, res) {

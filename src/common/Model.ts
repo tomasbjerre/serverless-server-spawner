@@ -14,5 +14,4 @@ export interface Server {
   id: ServerId;
   cloneUrl: string;
   branch: string;
-  status: 'STARTED' | 'STARTING' | 'CREATED';
 }

@@ -13,6 +13,6 @@ export function validateUuid(it: string) {
   return validate(it);
 }
 
-export function getMatched(folder: string): Matched {
+export function getMatched(repoFolder: string): Matched {
   return {} as Matched; //TODO
 }
