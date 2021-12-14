@@ -16,7 +16,6 @@ const program = new Command()
   .version(pkgJson.version)
   .option('-ws, --workspace <folder>')
   .option('-s, --server <id>')
-  .option('-mf, --matchers-folder <folder>', 'Folder containing matchers.')
   .option('-t, --matchers-folder <folder>', 'Folder containing matchers.')
   .option(
     '-ttl, --time-to-live <minutes>',
@@ -32,6 +31,7 @@ const eventEmitter = new events.EventEmitter();
 const serverDir = path.join(program.opts().workspace, program.opts().server);
 const workspace = new Workspace(program.opts().workspace);
 const timeToLive = program.opts().timeToLive;
+const matchersFolder = program.opts().matchersFolder;
 
 function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
   const p = spawnProcess(
@@ -91,7 +91,7 @@ if (program.opts().task == 'spawn') {
         fs.renameSync(cloneFolder, repoFolder);
       }
     }
-    const matched = getMatched(repoFolder);
+    const matched = getMatched(matchersFolder, repoFolder);
     const spawnedServerProcess = spawnServer(
       serverId,
       cloneFolder,

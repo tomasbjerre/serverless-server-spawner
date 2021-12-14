@@ -15,3 +15,9 @@ export interface Server {
   cloneUrl: string;
   branch: string;
 }
+
+export interface Matcher {
+  getName(repoFolder: string): string;
+  getStartCommand(repoFolder: string): string;
+  isMatching(repoFolder: string): boolean;
+}
