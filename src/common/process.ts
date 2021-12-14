@@ -7,7 +7,7 @@ export const shutdownProcess = (
   signal = 'SIGTERM',
   timeout = 20000
 ) =>
-  new Promise((resolve, reject) => {
+  new Promise<void>((resolve, reject) => {
     process.kill(pid, signal);
     let count = 0;
     setInterval(() => {

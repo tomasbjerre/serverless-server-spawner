@@ -1,4 +1,5 @@
 import express from 'express';
+import NodeCache from 'node-cache';
 import { Workspace } from '../common/workspace';
 import { ServerId, ServerLogFile, ServerSettings } from '../common/Model';
 import { shutdownProcess, spawnProcess } from '../common/process';
@@ -6,6 +7,9 @@ import { GitService } from '../common/GitService';
 
 export function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
+  const cache = new NodeCache({
+    stdTTL: 60 * 60,
+  });
   const app = express();
 
   app.get('/dispatch', function (req, res) {
@@ -34,18 +38,18 @@ export function run(settings: ServerSettings) {
     res.redirect(`${settings.dashboardUrl}#/dispatch?server=${serverId}`);
   });
 
-  app.get('/server', function (req, res) {
+  app.get('/servers', function (req, res) {
     const servers = workspace.getServers();
     res.write(servers);
   });
 
-  app.get('/server/:id', function (req, res) {
+  app.get('/servers/:id', function (req, res) {
     const id = req.params.id as string;
     const servers = workspace.getServer(id);
     res.write(servers);
   });
 
-  app.get('/server/:id/state', function (req, res) {
+  app.get('/servers/:id/state', function (req, res) {
     const id = req.params.id as ServerId;
     const serverState = workspace.getServerState(id);
     res.write({ state: serverState });
@@ -57,26 +61,44 @@ export function run(settings: ServerSettings) {
     res.write(logContent);
   }
 
-  app.get('/server/:id/log/clone', function (req, res) {
+  app.get('/servers/:id/log/clone', function (req, res) {
     getLog('clone', req, res);
   });
 
-  app.get('/server/:id/log/run', function (req, res) {
+  app.get('/servers/:id/log/run', function (req, res) {
     getLog('run', req, res);
   });
 
-  app.get('/server/:id/log/spawn', function (req, res) {
+  app.get('/servers/:id/log/spawn', function (req, res) {
     getLog('spawn', req, res);
   });
 
-  app.get('/cloneUrls', function (req, res) {
-    const cloneUrls = GitService.from(settings.gitService).getCloneUrls();
+  function getCachedOrFetch(key: string, getter: () => any): any {
+    if (!cache.has(key)) {
+      const val = getter();
+      cache.set(key, val);
+    }
+    return cache.get(key);
+  }
+
+  app.get('/cloneurls', function (req, res) {
+    const cloneUrls = getCachedOrFetch('cloneurls', () =>
+      GitService.from(settings.gitService).getCloneUrls()
+    );
     res.write(cloneUrls);
   });
 
-  app.get('/cloneUrls/:cloneUrl/branches', function (req, res) {
-    const cloneUrls = GitService.from(settings.gitService).getBranches();
-    res.write(cloneUrls);
+  app.get('/cloneurls/:cloneUrl/branches', function (req, res) {
+    const cloneUrl = req.params.cloneUrl;
+    const branches = getCachedOrFetch('branches', () =>
+      GitService.from(settings.gitService).getBranches(cloneUrl)
+    );
+    res.write(branches);
+  });
+
+  app.post('/clearcache', function (req, res) {
+    cache.flushAll();
+    res.write({});
   });
 
   app.post('/killitwithfire', async function (req, res) {

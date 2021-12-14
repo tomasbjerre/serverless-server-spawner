@@ -8,9 +8,11 @@
   },
   "bin": "./lib/spawner/bin.js",
   "dependencies": {
+    "axios": "^0.24.0",
     "commander": "^8.3.0",
     "express": "^4.17.1",
     "figlet": "^1.5.2",
+    "node-cache": "^5.1.2",
     "path": "^0.12.7",
     "uuid": "^8.3.2"
   },
@@ -22,7 +24,7 @@
     "@types/uuid": "^8.3.3",
     "prettier": "^2.0.5",
     "ts-node": "^8.9.0",
-    "typescript": "^3.8.3"
+    "typescript": "^4.5.4"
   },
   "homepage": "https://github.com/tomasbjerre/serverless-server-spawner",
   "repository": "git@github.com:tomasbjerre/serverless-server-spawner.git",

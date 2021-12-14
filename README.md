@@ -9,9 +9,11 @@ This is work in progress...
 Basic idea:
 
 - Start a server with `npx serverless-server-spawner`.
-- Invoke it with `https://serverless/?cloneurl=X&branch=Y`
-- Clone that repo and checkout that branch
-- Detect what was cloned and starta a server
+- Invoke the server with `https://serverless/?cloneurl=X&branch=Y`
+- Server will
+  - Clone that repo and checkout that branch
+  - Detect what was cloned and starta a server
+  - Keep that server alive for configurable amount of time
 
 Detection is done with configurable matchers. A matcher:
 
@@ -20,48 +22,55 @@ Detection is done with configurable matchers. A matcher:
 
 As the servers are spawned it will keep track of all processes. Provides an API as well as a nice dashboard showing status of the setup.
 
+## Use cases
+
+- Can be used to test feature-branches. Adding links from pull-requests to this server and let this server spawn servers running those features.
+- ...
+
 ## API
 
 RESTful API of the this server.
 
-## `GET /dispatch?cloneurl={cloneUrl}&branch={branch}`
-
-This is the entry point where users would typically be directed when they want to use a server.
-
-Responds with http redirect to the configured dashboard.
-
-## `GET /server/{id}`
-
-Details about the server.
-
-```json
-{
-  "id": "{id}",
-  "status": "STARTED|STARTING"
-}
+```
+GET /dispatch?cloneurl={cloneUrl}&branch={branch}
 ```
 
-## `GET /server/{id}/log`
-
-The server log.
-
-```any
-...
+```
+GET /servers
 ```
 
-## `GET /server`
-
-All servers.
-
-```json
-[
-  {
-    "id": "{id}",
-    "status": "STARTED|STARTING"
-  }
-]
+```
+GET /servers/:id
 ```
 
-## `POST /killitwithfire`
+```
+GET /servers/:id/state
+```
 
-Shut down all servers and cleanup everything.
+```
+GET /servers/:id/log/clone
+```
+
+```
+GET /servers/:id/log/run
+```
+
+```
+GET /servers/:id/log/spawn
+```
+
+```
+GET /cloneurls
+```
+
+```
+GET /cloneurls/:cloneUrl/branches
+```
+
+```
+POST /clearcache
+```
+
+```
+POST /killitwithfire
+```

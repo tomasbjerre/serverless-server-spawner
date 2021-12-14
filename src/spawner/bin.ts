@@ -12,6 +12,10 @@ console.log(
   })
 );
 
+function commaSeparatedList(value: string) {
+  return value.split(',');
+}
+
 const program = new Command()
   .version(pkgJson.version)
   .option('-ws, --workspace <folder>', 'Filesystem to work with.')
@@ -34,6 +38,11 @@ const program = new Command()
   .option(
     '-bbsu, --bitbucket-server-url <url>',
     'Bitbucket Server base URL to use for REST integration'
+  )
+  .option(
+    '-bbsp, --bitbucket-server-projects <projects>',
+    'Bitbucket Server projects',
+    commaSeparatedList
   );
 program.parse(process.argv);
 
@@ -46,10 +55,12 @@ const matchersFolder = program.opts().matchersFolder;
 const timeToLive = program.opts().timeToLive;
 const bitbucketServerAccessToken = program.opts().bitbucketServerAccessToken;
 const bitbucketServerUrl = program.opts().bitbucketServerUrl;
+const bitbucketServerProjects = program.opts().bitbucketServerProjects;
 const bitbucketServer = bitbucketServerAccessToken
   ? ({
       url: bitbucketServerUrl,
       personalAccessToken: bitbucketServerAccessToken,
+      projects: bitbucketServerProjects,
     } as BitbucketServer)
   : undefined;
 console.log(`
