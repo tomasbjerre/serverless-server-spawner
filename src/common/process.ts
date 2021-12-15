@@ -33,7 +33,7 @@ export function spawnProcess(
   opts = {}
 ): any {
   const p = spawn(command, args, opts);
-  fs.writeFileSync(pidFile, p.pid);
+  fs.writeFileSync(pidFile, `${p.pid}`);
   p.stdout.pipe(logFile);
   p.stderr.pipe(logFile);
   p.on('close', () => {

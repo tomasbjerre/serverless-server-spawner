@@ -20,8 +20,9 @@ export function run(settings: ServerSettings) {
     const spawnLog = workspace.getServerLogFile(serverId, 'spawn');
     const spawnPidFile = workspace.getServerPidFile(serverId, 'spawn');
     spawnProcess(
-      '../internal/bin',
+      'nodejs',
       [
+        '../internal/bin.js',
         '--workspace',
         settings.workspace,
         '--matchers-folder',
@@ -32,7 +33,6 @@ export function run(settings: ServerSettings) {
         serverId,
         '--time-to-live',
         settings.timeToLive,
-        ,
         '--minimum-port-number',
         settings.minimumPortNumber,
         '--maximum-port-number',
