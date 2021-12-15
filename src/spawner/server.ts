@@ -40,25 +40,25 @@ export function run(settings: ServerSettings) {
 
   app.get('/servers', function (req, res) {
     const servers = workspace.getServers();
-    res.write(servers);
+    res.json(servers);
   });
 
   app.get('/servers/:id', function (req, res) {
     const id = req.params.id as string;
     const servers = workspace.getServer(id);
-    res.write(servers);
+    res.json(servers);
   });
 
   app.get('/servers/:id/state', function (req, res) {
     const id = req.params.id as ServerId;
     const serverState = workspace.getServerState(id);
-    res.write({ state: serverState });
+    res.json({ state: serverState });
   });
 
   function getLog(log: ServerLogFile, req: any, res: any): void {
     const id = req.params.id as ServerId;
     const logContent = workspace.getServerLog(id, log);
-    res.write(logContent);
+    res.json(logContent);
   }
 
   app.get('/servers/:id/log/clone', function (req, res) {
@@ -85,7 +85,7 @@ export function run(settings: ServerSettings) {
     const cloneUrls = getCachedOrFetch('cloneurls', () =>
       GitService.from(settings.gitService).getCloneUrlCategories()
     );
-    res.write(cloneUrls);
+    res.json(cloneUrls);
   });
 
   app.get(
@@ -101,13 +101,13 @@ export function run(settings: ServerSettings) {
             category2,
           })
       );
-      res.write(branches);
+      res.json(branches);
     }
   );
 
   app.post('/clearcache', function (req, res) {
     cache.flushAll();
-    res.write({});
+    res.json({});
   });
 
   app.post('/killitwithfire', async function (req, res) {
@@ -130,7 +130,7 @@ export function run(settings: ServerSettings) {
       console.log(`removing server ${server.id}`);
       workspace.removeServer(server.id);
     }
-    res.write({});
+    res.json({});
   });
 
   app.use((err: any, req: any, res: any, next: any) => {

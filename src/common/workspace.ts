@@ -12,7 +12,11 @@ const SERVER_FILE = 'server.json';
 const REPO_FOLDER = 'repo';
 
 export class Workspace {
-  constructor(private folder: string) {}
+  constructor(private folder: string) {
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder);
+    }
+  }
 
   public getOrCreate(cloneUrl: string, branch: string): ServerId {
     const found = this.getServers().find(
