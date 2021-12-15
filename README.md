@@ -64,7 +64,7 @@ GET /cloneurlcategories
 ```
 
 ```
-GET /cloneurls/:cloneUrl/branches
+GET /cloneurlcategories/:category1/:category2/branches
 ```
 
 ```
