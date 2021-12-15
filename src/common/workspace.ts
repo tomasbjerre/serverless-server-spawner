@@ -29,6 +29,7 @@ export class Workspace {
       .readdirSync(this.folder)
       .filter((it) => validateUuid(it))
       .map((it) => path.join(this.folder, it, SERVER_FILE))
+      .filter((it) => fs.existsSync(it))
       .map((it) => fs.readFileSync(it, 'utf-8'))
       .map((it) => JSON.parse(it) as Server);
   }
@@ -96,7 +97,10 @@ export class Workspace {
       id: serverId,
       name: undefined,
     };
-    fs.writeFileSync(path.join(serverFolder, SERVER_FILE), repo);
+    console.log(`created ${serverFolder}`);
+    const filename = path.join(serverFolder, SERVER_FILE);
+    fs.writeFileSync(filename, JSON.stringify(repo, null, 4));
+    console.log(`created ${filename}`);
     return serverId;
   }
 }
