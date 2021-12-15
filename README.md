@@ -60,7 +60,7 @@ GET /servers/:id/log/spawn
 ```
 
 ```
-GET /cloneurls
+GET /cloneurlcategories
 ```
 
 ```

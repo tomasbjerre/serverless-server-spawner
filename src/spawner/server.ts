@@ -81,20 +81,25 @@ export function run(settings: ServerSettings) {
     return cache.get(key);
   }
 
-  app.get('/cloneurls', function (req, res) {
+  app.get('/cloneurlcategories', function (req, res) {
     const cloneUrls = getCachedOrFetch('cloneurls', () =>
-      GitService.from(settings.gitService).getCloneUrls()
+      GitService.from(settings.gitService).getCloneUrlCategories()
     );
     res.write(cloneUrls);
   });
 
-  app.get('/cloneurls/:cloneUrl/branches', function (req, res) {
-    const cloneUrl = req.params.cloneUrl;
-    const branches = getCachedOrFetch('branches', () =>
-      GitService.from(settings.gitService).getBranches(cloneUrl)
-    );
-    res.write(branches);
-  });
+  app.get(
+    '/cloneurlcategories/:category1/:category2/branches',
+    function (req, res) {
+      const branches = getCachedOrFetch('branches', () =>
+        GitService.from(settings.gitService).getCloneUrls({
+          category1: req.params.category1,
+          category2: req.params.category2,
+        })
+      );
+      res.write(branches);
+    }
+  );
 
   app.post('/clearcache', function (req, res) {
     cache.flushAll();

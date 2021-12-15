@@ -22,13 +22,14 @@ export interface Matcher {
   isMatching(repoFolder: string): boolean;
 }
 
-export interface CloneUrl {
-  id: string;
-  url: string;
+export interface CloneUrlCategory {
+  category1: string;
+  category2: string;
 }
 
-export interface Branch {
+export interface CloneUrl {
   id: string;
+  cloneUrl: string;
   branch: string;
 }
 

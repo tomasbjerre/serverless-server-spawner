@@ -1,4 +1,9 @@
-import { CloneUrl, Branch, GitServices, BitbucketServer } from './Model';
+import {
+  CloneUrl,
+  CloneUrlCategory,
+  GitServices,
+  BitbucketServer,
+} from './Model';
 import axios, { AxiosRequestConfig } from 'axios';
 export abstract class GitService {
   public static from(gitService: GitServices): GitService {
@@ -7,12 +12,8 @@ export abstract class GitService {
     }
     throw `No git service`;
   }
-  public async getCloneUrls(): Promise<CloneUrl[]> {
-    return [];
-  }
-  public async getBranches(cloneUrl: string): Promise<Branch[]> {
-    return [];
-  }
+  public abstract getCloneUrlCategories(): Promise<CloneUrlCategory[]>;
+  public abstract getCloneUrls(category: CloneUrlCategory): Promise<CloneUrl[]>;
 }
 
 class BitbucketService extends GitService {
@@ -26,24 +27,34 @@ class BitbucketService extends GitService {
     };
   }
 
-  async getCloneUrls(): Promise<CloneUrl[]> {
-    const repos = [];
+  async getCloneUrlCategories(): Promise<CloneUrlCategory[]> {
+    const categories = [];
     for (let project of this.settings.projects) {
       const reposUrl = `${this.settings.url}/projects/${project}/repos`;
       const response = await axios.get(reposUrl, this.config);
-      repos.push(
+      categories.push(
         ...response.data.map((it: any) => {
           return {
-            id: it.slug,
-            url: it.cloneUrl,
-          } as CloneUrl;
+            category1: project,
+            category2: it.slug,
+          } as CloneUrlCategory;
         })
       );
     }
-    return repos;
+    return categories;
   }
 
-  async getBranches(cloneUrl: string): Promise<Branch[]> {
-    return []; //TODO
+  async getCloneUrls(category: CloneUrlCategory): Promise<CloneUrl[]> {
+    const repoUrl = `${this.settings.url}/projects/${category.category1}/repos/${category.category2}`;
+    const repoResponse = await axios.get(repoUrl, this.config);
+    const repoBranchUrl = `${this.settings.url}/projects/${category.category1}/repos/${category.category2}/branches`;
+    const repoBranchResponse = await axios.get(repoBranchUrl, this.config);
+    return repoBranchResponse.data.values.map((branch: any) => {
+      return {
+        id: repoResponse.data.slug,
+        branch: branch.displayId,
+        cloneUrl: repoResponse.data.cloneUrl,
+      } as CloneUrl;
+    });
   }
 }
