@@ -1,11 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import {
-  Server,
-  ServerId,
-  ServerLogFile as ServerProcessKind,
-  ProcessId,
-} from './Model';
+import { Server, ServerId, ServerLogFile, ProcessId } from './Model';
 import { randomUUID, validateUuid } from './common';
 
 const SERVER_FILE = 'server.json';
@@ -38,7 +33,7 @@ export class Workspace {
       .map((it) => JSON.parse(it) as Server);
   }
 
-  public getServerState(id: ServerId): ServerProcessKind | undefined {
+  public getServerState(id: ServerId): ServerLogFile | undefined {
     if (this.getServerPid(id, 'clone')) return 'clone';
     if (this.getServerPid(id, 'spawn')) return 'spawn';
     if (this.getServerPid(id, 'run')) return 'run';
@@ -64,20 +59,20 @@ export class Workspace {
     return path.join(this.folder, id, SERVER_FILE);
   }
 
-  public getServerLogFile(id: ServerId, kind: ServerProcessKind): string {
+  public getServerLogFile(id: ServerId, kind: ServerLogFile): string {
     return path.join(this.folder, id, kind);
   }
 
-  public getServerLog(id: ServerId, kind: ServerProcessKind): string {
+  public getServerLog(id: ServerId, kind: ServerLogFile): string {
     const serverlogPath = this.getServerLogFile(id, kind);
     return fs.readFileSync(serverlogPath).toString('utf8');
   }
 
-  public getServerPidFile(id: ServerId, kind: ServerProcessKind) {
+  public getServerPidFile(id: ServerId, kind: ServerLogFile) {
     return path.join(this.folder, id, `${kind}.pid`);
   }
 
-  public getServerPid(id: ServerId, kind: ServerProcessKind): ProcessId {
+  public getServerPid(id: ServerId, kind: ServerLogFile): ProcessId {
     const pidFile = this.getServerPidFile(id, kind);
     if (fs.existsSync(pidFile)) {
       return parseInt(fs.readFileSync(pidFile, 'utf8'));

@@ -112,20 +112,12 @@ export function run(settings: ServerSettings) {
 
   app.post('/killitwithfire', async function (req, res) {
     for (let server of workspace.getServers()) {
-      const spawnPid = workspace.getServerPid(server.id, 'spawn');
-      if (spawnPid != -1) {
-        console.log(`killing spawn ${spawnPid}`);
-        await shutdownProcess(spawnPid);
-      }
-      const clonePid = workspace.getServerPid(server.id, 'clone');
-      if (clonePid != -1) {
-        console.log(`killing clone ${clonePid}`);
-        await shutdownProcess(clonePid);
-      }
-      const runPid = workspace.getServerPid(server.id, 'run');
-      if (runPid != -1) {
-        console.log(`killing run ${runPid}`);
-        await shutdownProcess(runPid);
+      for (let state of ['clone', 'spawn', 'run'] as ServerLogFile[]) {
+        const pid = workspace.getServerPid(server.id, state);
+        if (pid != -1) {
+          console.log(`killing ${state} ${pid}`);
+          await shutdownProcess(pid);
+        }
       }
       console.log(`removing server ${server.id}`);
       workspace.removeServer(server.id);
