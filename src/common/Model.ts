@@ -50,4 +50,6 @@ export interface ServerSettings {
   timeToLive: number;
   gitService: GitServices;
   cacheTtl: number;
+  minimumPortNumber: number;
+  maximumPortNumber: number;
 }

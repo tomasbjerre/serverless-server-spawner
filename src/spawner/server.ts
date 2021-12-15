@@ -32,6 +32,11 @@ export function run(settings: ServerSettings) {
         serverId,
         '--time-to-live',
         settings.timeToLive,
+        ,
+        '--minimum-port-number',
+        settings.minimumPortNumber,
+        '--maximum-port-number',
+        settings.maximumPortNumber,
       ],
       spawnLog,
       spawnPidFile

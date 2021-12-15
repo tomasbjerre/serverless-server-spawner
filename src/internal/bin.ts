@@ -2,6 +2,7 @@
 
 import fs from 'fs';
 import path from 'path';
+const portastic = require('portastic');
 import { Command, Option } from 'commander';
 import { getMatched } from '../common/common';
 import { Workspace } from '../common/workspace';
@@ -24,6 +25,16 @@ const program = new Command()
   )
   .addOption(
     new Option('-t, --task <task>', 'task to perform').choices(['spawn'])
+  )
+  .option(
+    '-mip, --minimum-port-number <port>',
+    'Minimum port number to use for spawned servers',
+    '9000'
+  )
+  .option(
+    '-map, --maximum-port-number <port>',
+    'Maximum port number to use for spawned servers',
+    '9999'
   );
 program.parse(process.argv);
 
@@ -32,6 +43,8 @@ const serverDir = path.join(program.opts().workspace, program.opts().server);
 const workspace = new Workspace(program.opts().workspace);
 const timeToLive = program.opts().timeToLive;
 const matchersFolder = program.opts().matchersFolder;
+const minimumPortNumber = program.opts().minimumPortNumber;
+const maximumPortNumber = program.opts().maximumPortNumber;
 
 function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
   const p = spawnProcess(
@@ -64,14 +77,28 @@ function getGitRevision(folder: string): string {
 function spawnServer(
   serverId: string,
   folder: string,
-  startCommand: string
+  startCommand: string,
+  port: number
 ): any {
   const logFile = workspace.getServerLogFile(serverId, 'run');
   const pidFile = workspace.getServerPidFile(serverId, 'run');
   return spawnProcess(startCommand, [], logFile, pidFile, {
     shell: true,
     cwd: folder,
+    env: { ...process.env, PORT: port },
   });
+}
+
+async function findFreePort(min: number, max: number): Promise<number> {
+  const attempts = (max - min) * 2;
+  for (let i = 0; i <= attempts; i++) {
+    const r = Math.random() * (max - min) + min;
+    const available = await portastic.test(r);
+    if (available) {
+      return r;
+    }
+  }
+  throw `No available ports between ${min} and ${max}`;
 }
 
 if (program.opts().task == 'spawn') {
@@ -82,7 +109,7 @@ if (program.opts().task == 'spawn') {
   const repoFolder = workspace.getServerRepoFolder(serverId);
   cloneRepo(cloneFolder, serverToSpawn);
 
-  eventEmitter.once('success', () => {
+  eventEmitter.once('success', async () => {
     if (fs.existsSync(repoFolder)) {
       const oldRevision = getGitRevision(repoFolder);
       const newRevision = getGitRevision(cloneFolder);
@@ -92,10 +119,12 @@ if (program.opts().task == 'spawn') {
       }
     }
     const matched = getMatched(matchersFolder, repoFolder);
+    const portNumber = await findFreePort(minimumPortNumber, maximumPortNumber);
     const spawnedServerProcess = spawnServer(
       serverId,
       cloneFolder,
-      matched.startCommand
+      matched.startCommand,
+      portNumber
     );
     const serverFile = workspace.getServerFile(serverId);
     serverToSpawn.name = matched.name;

@@ -44,6 +44,16 @@ const program = new Command()
     'Bitbucket Server projects',
     commaSeparatedList
   )
+  .option(
+    '-mip, --minimum-port-number <port>',
+    'Minimum port number to use for spawned servers',
+    '9000'
+  )
+  .option(
+    '-map, --maximum-port-number <port>',
+    'Maximum port number to use for spawned servers',
+    '9999'
+  )
   .option('-ct, --cache-ttl <minutes>', 'Cache time to live, seconds', '120');
 program.parse(process.argv);
 
@@ -58,6 +68,8 @@ const bitbucketServerAccessToken = program.opts().bitbucketServerAccessToken;
 const bitbucketServerUrl = program.opts().bitbucketServerUrl;
 const bitbucketServerProjects = program.opts().bitbucketServerProjects;
 const cacheTtl = program.opts().cacheTtl;
+const minimumPortNumber = program.opts().minimumPortNumber;
+const maximumPortNumber = program.opts().maximumPortNumber;
 const bitbucketServer = bitbucketServerAccessToken
   ? ({
       url: bitbucketServerUrl,
@@ -73,6 +85,8 @@ console.log(`
  timeToLive: ${timeToLive}
  bitbucketServer: ${bitbucketServer}
  cacheTtl: ${cacheTtl}
+ minimumPortNumber: ${minimumPortNumber}
+ maximumPortNumber: ${maximumPortNumber}
 
  http://localhost:${port}
 `);
@@ -86,4 +100,6 @@ run({
     bitbucketServer,
   },
   cacheTtl,
+  minimumPortNumber,
+  maximumPortNumber,
 });
