@@ -49,4 +49,5 @@ export interface ServerSettings {
   matchersFolder: string;
   timeToLive: number;
   gitService: GitServices;
+  cacheTtl: number;
 }

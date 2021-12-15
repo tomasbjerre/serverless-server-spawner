@@ -43,7 +43,8 @@ const program = new Command()
     '-bbsp, --bitbucket-server-projects <projects>',
     'Bitbucket Server projects',
     commaSeparatedList
-  );
+  )
+  .option('-ct, --cache-ttl <ttl>', 'Cache time to live, seconds', '7200');
 program.parse(process.argv);
 
 const port = program.opts().port;
@@ -56,6 +57,7 @@ const timeToLive = program.opts().timeToLive;
 const bitbucketServerAccessToken = program.opts().bitbucketServerAccessToken;
 const bitbucketServerUrl = program.opts().bitbucketServerUrl;
 const bitbucketServerProjects = program.opts().bitbucketServerProjects;
+const cacheTtl = program.opts().cacheTtl;
 const bitbucketServer = bitbucketServerAccessToken
   ? ({
       url: bitbucketServerUrl,
@@ -70,6 +72,7 @@ console.log(`
  matchersFolder: ${matchersFolder}
  timeToLive: ${timeToLive}
  bitbucketServer: ${bitbucketServer}
+ cacheTtl: ${cacheTtl}
 `);
 run({
   port,
@@ -80,4 +83,5 @@ run({
   gitService: {
     bitbucketServer,
   },
+  cacheTtl,
 });

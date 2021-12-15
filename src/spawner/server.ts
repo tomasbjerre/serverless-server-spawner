@@ -8,7 +8,7 @@ import { GitService } from '../common/GitService';
 export function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
   const cache = new NodeCache({
-    stdTTL: 60 * 60,
+    stdTTL: settings.cacheTtl,
   });
   const app = express();
 
@@ -91,11 +91,15 @@ export function run(settings: ServerSettings) {
   app.get(
     '/cloneurlcategories/:category1/:category2/branches',
     function (req, res) {
-      const branches = getCachedOrFetch('branches', () =>
-        GitService.from(settings.gitService).getCloneUrls({
-          category1: req.params.category1,
-          category2: req.params.category2,
-        })
+      const category1 = req.params.category1;
+      const category2 = req.params.category2;
+      const branches = getCachedOrFetch(
+        `branches-${category1}-${category2}`,
+        () =>
+          GitService.from(settings.gitService).getCloneUrls({
+            category1,
+            category2,
+          })
       );
       res.write(branches);
     }
@@ -108,8 +112,22 @@ export function run(settings: ServerSettings) {
 
   app.post('/killitwithfire', async function (req, res) {
     for (let server of workspace.getServers()) {
-      const pid = workspace.getServerPid(server.id, 'run');
-      await shutdownProcess(pid);
+      const spawnPid = workspace.getServerPid(server.id, 'spawn');
+      if (spawnPid != -1) {
+        console.log(`killing spawn ${spawnPid}`);
+        await shutdownProcess(spawnPid);
+      }
+      const clonePid = workspace.getServerPid(server.id, 'clone');
+      if (clonePid != -1) {
+        console.log(`killing clone ${clonePid}`);
+        await shutdownProcess(clonePid);
+      }
+      const runPid = workspace.getServerPid(server.id, 'run');
+      if (runPid != -1) {
+        console.log(`killing run ${runPid}`);
+        await shutdownProcess(runPid);
+      }
+      console.log(`removing server ${server.id}`);
       workspace.removeServer(server.id);
     }
     res.write({});
