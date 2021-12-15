@@ -73,6 +73,8 @@ console.log(`
  timeToLive: ${timeToLive}
  bitbucketServer: ${bitbucketServer}
  cacheTtl: ${cacheTtl}
+
+ http://localhost:${port}
 `);
 run({
   port,

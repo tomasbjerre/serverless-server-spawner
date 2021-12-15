@@ -32,45 +32,45 @@ As the servers are spawned it will keep track of all processes. Provides an API 
 RESTful API of the this server.
 
 ```
-GET /dispatch?cloneurl={cloneUrl}&branch={branch}
+GET /api/dispatch?cloneurl={cloneUrl}&branch={branch}
 ```
 
 ```
-GET /servers
+GET /api/servers
 ```
 
 ```
-GET /servers/:id
+GET /api/servers/:id
 ```
 
 ```
-GET /servers/:id/state
+GET /api/servers/:id/state
 ```
 
 ```
-GET /servers/:id/log/clone
+GET /api/servers/:id/log/clone
 ```
 
 ```
-GET /servers/:id/log/run
+GET /api/servers/:id/log/run
 ```
 
 ```
-GET /servers/:id/log/spawn
+GET /api/servers/:id/log/spawn
 ```
 
 ```
-GET /cloneurlcategories
+GET /api/cloneurlcategories
 ```
 
 ```
-GET /cloneurlcategories/:category1/:category2/branches
+GET /api/cloneurlcategories/:category1/:category2/branches
 ```
 
 ```
-POST /clearcache
+POST /api/clearcache
 ```
 
 ```
-POST /killitwithfire
+POST /api/killitwithfire
 ```

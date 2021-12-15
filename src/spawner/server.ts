@@ -1,3 +1,4 @@
+import path from 'path';
 import express from 'express';
 import NodeCache from 'node-cache';
 import { Workspace } from '../common/workspace';
@@ -12,7 +13,7 @@ export function run(settings: ServerSettings) {
   });
   const app = express();
 
-  app.get('/dispatch', function (req, res) {
+  app.get('/api/dispatch', function (req, res) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
     const serverId = workspace.getOrCreate(cloneUrl, branch);
@@ -38,18 +39,18 @@ export function run(settings: ServerSettings) {
     res.redirect(`${settings.dashboardUrl}#/dispatch?server=${serverId}`);
   });
 
-  app.get('/servers', function (req, res) {
+  app.get('/api/servers', function (req, res) {
     const servers = workspace.getServers();
     res.json(servers);
   });
 
-  app.get('/servers/:id', function (req, res) {
+  app.get('/api/servers/:id', function (req, res) {
     const id = req.params.id as string;
     const servers = workspace.getServer(id);
     res.json(servers);
   });
 
-  app.get('/servers/:id/state', function (req, res) {
+  app.get('/api/servers/:id/state', function (req, res) {
     const id = req.params.id as ServerId;
     const serverState = workspace.getServerState(id);
     res.json({ state: serverState });
@@ -61,15 +62,15 @@ export function run(settings: ServerSettings) {
     res.json(logContent);
   }
 
-  app.get('/servers/:id/log/clone', function (req, res) {
+  app.get('/api/servers/:id/log/clone', function (req, res) {
     getLog('clone', req, res);
   });
 
-  app.get('/servers/:id/log/run', function (req, res) {
+  app.get('/api/servers/:id/log/run', function (req, res) {
     getLog('run', req, res);
   });
 
-  app.get('/servers/:id/log/spawn', function (req, res) {
+  app.get('/api/servers/:id/log/spawn', function (req, res) {
     getLog('spawn', req, res);
   });
 
@@ -81,7 +82,7 @@ export function run(settings: ServerSettings) {
     return cache.get(key);
   }
 
-  app.get('/cloneurlcategories', function (req, res) {
+  app.get('/api/cloneurlcategories', function (req, res) {
     const cloneUrls = getCachedOrFetch('cloneurls', () =>
       GitService.from(settings.gitService).getCloneUrlCategories()
     );
@@ -89,7 +90,7 @@ export function run(settings: ServerSettings) {
   });
 
   app.get(
-    '/cloneurlcategories/:category1/:category2/branches',
+    '/api/cloneurlcategories/:category1/:category2/branches',
     function (req, res) {
       const category1 = req.params.category1;
       const category2 = req.params.category2;
@@ -105,12 +106,12 @@ export function run(settings: ServerSettings) {
     }
   );
 
-  app.post('/clearcache', function (req, res) {
+  app.post('/api/clearcache', function (req, res) {
     cache.flushAll();
     res.json({});
   });
 
-  app.post('/killitwithfire', async function (req, res) {
+  app.post('/api/killitwithfire', async function (req, res) {
     for (let server of workspace.getServers()) {
       for (let state of ['clone', 'spawn', 'run'] as ServerLogFile[]) {
         const pid = workspace.getServerPid(server.id, state);
@@ -123,6 +124,13 @@ export function run(settings: ServerSettings) {
       workspace.removeServer(server.id);
     }
     res.json({});
+  });
+
+  app.use(express.static(path.join(__dirname, '..', '..', 'lib', 'public')));
+  app.get('*', (req, res) => {
+    res.sendFile(
+      path.join(__dirname, '..', '..', 'lib', 'public', 'index.html')
+    );
   });
 
   app.use((err: any, req: any, res: any, next: any) => {

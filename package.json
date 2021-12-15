@@ -2,7 +2,7 @@
   "name": "serverless-server-spawner",
   "version": "0.0.1",
   "scripts": {
-    "build": "rm -rf lib/* && npm run format && tsc -p .",
+    "build": "rm -rf lib && npm run format && mkdir lib && cp -rv src/public lib/public && tsc -p .",
     "format": "prettier --write .",
     "release": "npm run build && npm version patch && npm publish && git push --follow-tags"
   },
