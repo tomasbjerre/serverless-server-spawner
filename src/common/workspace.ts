@@ -61,7 +61,7 @@ export class Workspace {
   }
 
   public getServerLogFile(id: ServerId, kind: ServerLogFile): string {
-    return path.join(this.folder, id, kind);
+    return path.join(this.folder, id, `${kind}.log`);
   }
 
   public getServerLog(id: ServerId, kind: ServerLogFile): string {

@@ -22,7 +22,7 @@ export function run(settings: ServerSettings) {
     spawnProcess(
       'nodejs',
       [
-        '../internal/bin.js',
+        path.join(__dirname, '..', 'internal', 'bin.js'),
         '--workspace',
         settings.workspace,
         '--matchers-folder',

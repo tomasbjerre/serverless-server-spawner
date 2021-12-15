@@ -9,7 +9,7 @@ import { Workspace } from '../common/workspace';
 import { Server } from '../common/Model';
 import { spawnProcess } from '../common/process';
 import { SIGTERM } from 'constants';
-const pkgJson = require('../package.json');
+const pkgJson = require(path.join(__dirname, '..', '..', 'package.json'));
 const { execSync } = require('child_process');
 const events = require('events');
 

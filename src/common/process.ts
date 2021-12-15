@@ -32,10 +32,11 @@ export function spawnProcess(
   pidFile: string,
   opts = {}
 ): any {
+  const logStream = fs.createWriteStream(logFile, { flags: 'a' });
   const p = spawn(command, args, opts);
   fs.writeFileSync(pidFile, `${p.pid}`);
-  p.stdout.pipe(logFile);
-  p.stderr.pipe(logFile);
+  p.stdout.pipe(logStream);
+  p.stderr.pipe(logStream);
   p.on('close', () => {
     fs.unlinkSync(pidFile);
   });
