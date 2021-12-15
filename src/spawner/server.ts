@@ -8,7 +8,7 @@ import { GitService } from '../common/GitService';
 export function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
   const cache = new NodeCache({
-    stdTTL: settings.cacheTtl,
+    stdTTL: settings.cacheTtl * 60,
   });
   const app = express();
 

@@ -44,7 +44,7 @@ const program = new Command()
     'Bitbucket Server projects',
     commaSeparatedList
   )
-  .option('-ct, --cache-ttl <ttl>', 'Cache time to live, seconds', '7200');
+  .option('-ct, --cache-ttl <minutes>', 'Cache time to live, seconds', '120');
 program.parse(process.argv);
 
 const port = program.opts().port;
