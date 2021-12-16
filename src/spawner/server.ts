@@ -41,7 +41,7 @@ export function run(settings: ServerSettings) {
       spawnLog,
       spawnPidFile
     );
-    res.redirect(`${settings.dashboardUrl}#/dispatch?server=${serverId}`);
+    res.redirect(`${settings.dashboardUrl}#action=dispatch&server=${serverId}`);
   });
 
   app.get('/api/servers', function (req, res) {

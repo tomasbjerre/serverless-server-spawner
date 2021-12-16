@@ -1,30 +1,13 @@
 <html>
   <head>
     <script src="jquery.js"></script>
+    <script src="index.js"></script>
+    <link rel="stylesheet" href="spinner.css" />
   </head>
   <body>
+    <div id="loading" class="loading" style="display: none">Loading&#8230;</div>
+    <div id="dispatch"></div>
     <label>Servers</label>
     <div id="servers"></div>
-
-    <script>
-      function updateServerList() {
-        $.get('api/servers', function (servers) {
-          $('#servers').empty();
-          for (let server of servers) {
-            $('#servers').append(
-              `<li><a href="http://localhost:${server.port}" target="_blank">${server.name}</a></li>`
-            );
-          }
-        });
-      }
-
-      function pulse() {
-        updateServerList();
-      }
-
-      var intervalId = setInterval(function () {
-        pulse();
-      }, 5000);
-    </script>
   </body>
 </html>

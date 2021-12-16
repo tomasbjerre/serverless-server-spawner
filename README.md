@@ -27,6 +27,38 @@ As the servers are spawned it will keep track of all processes. Provides an API 
 - Can be used to test feature-branches. Adding links from pull-requests to this server and let this server spawn servers running those features.
 - ...
 
+## Matchers
+
+- Put them in a folder
+- name them like `*.matcher.js`
+
+Example: `serverless-matchers/example.matcher.js`
+
+Content should be like:
+
+```js
+function getName(repoFolder) {
+  return `a name, probably derived from whats inside repoFolder`;
+}
+
+function getStartCommand(repoFolder) {
+  return `any command to run withing repoFolder`;
+}
+
+function isMatching(repoFolder) {
+  return true; // If this matcher matches whats inside repoFolder
+}
+
+module.exports = { getName, getStartCommand, isMatching };
+```
+
+And you point at them with:
+
+```sh
+npx serverless-server-spawner \
+  --matchers-folder /path/to/serverless-matchers
+```
+
 ## API
 
 RESTful API of the this server.
