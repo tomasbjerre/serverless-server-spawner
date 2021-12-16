@@ -13,13 +13,28 @@ function getHashParams() {
   return hashParams;
 }
 
+function killitwithfire() {
+  $.post('/api/killitwithfire', function () {});
+}
+
+function clearcache() {
+  $.post('/api/clearcache', function () {});
+}
+
 function updateServerList() {
   $.get('api/servers', function (servers) {
     $('#servers').empty();
     for (let server of servers) {
       if (server.name) {
         $('#servers').append(
-          `<li><a href="http://localhost:${server.port}" target="_blank">${server.name}</a></li>`
+          `<li>
+          <a href="http://localhost:${server.port}" target="_blank">${server.name}</a> -
+          <a href="/api/servers/${server.id}/state" target="_blank"><i>state</i></a>
+          Log:
+          <a href="/api/servers/${server.id}/log/clone" target="_blank"><i>clone</i></a>
+          <a href="/api/servers/${server.id}/log/run" target="_blank"><i>run</i></a>
+          <a href="/api/servers/${server.id}/log/spawn" target="_blank"><i>spawn</i></a>
+          </li>`
         );
       } else {
         $('#servers').append(`<li>Spawning ${server.id}...</li>`);
@@ -30,9 +45,9 @@ function updateServerList() {
 
 function checkDispatch() {
   $('#dispatch').html(`Waiting for server to start...`);
-  $('#loading').show();
   var hashParams = getHashParams();
   if (hashParams.action == 'dispatch') {
+    $('#loading').show();
     $.get('api/servers', function (servers) {
       $('#servers').empty();
       for (var server of servers) {

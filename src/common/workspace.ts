@@ -35,9 +35,14 @@ export class Workspace {
   }
 
   public getServerState(id: ServerId): ServerLogFile | undefined {
-    if (this.getServerPid(id, 'clone')) return 'clone';
-    if (this.getServerPid(id, 'spawn')) return 'spawn';
-    if (this.getServerPid(id, 'run')) return 'run';
+    if (this.getServerPid(id, 'clone') != -1) return 'clone';
+    if (
+      this.getServerPid(id, 'spawn') != -1 &&
+      this.getServerPid(id, 'run') != -1
+    )
+      return 'run';
+    if (this.getServerPid(id, 'spawn') != -1) return 'spawn';
+    if (this.getServerPid(id, 'run') != -1) return 'run';
     return undefined;
   }
   public getServer(id: ServerId): Server {

@@ -5,9 +5,10 @@ const { spawn } = require('child_process');
 export const shutdownProcess = (
   pid: ProcessId,
   signal = 'SIGILL',
-  timeout = 20000
+  timeout = 60000
 ) =>
   new Promise<void>((resolve, reject) => {
+    const intervalMillis = 20000;
     process.kill(pid, signal);
     let count = 0;
     setInterval(() => {
@@ -18,11 +19,11 @@ export const shutdownProcess = (
         console.log(`the process ${pid} does not exists anymore`);
         resolve();
       }
-      if ((count += 100) > timeout) {
+      if ((count += intervalMillis) > timeout) {
         console.log(`giving up on ${pid}`);
         reject(new Error(`Timeout process kill`));
       }
-    }, 100);
+    }, intervalMillis);
   });
 
 export function spawnProcess(
