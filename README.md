@@ -27,6 +27,9 @@ As the servers are spawned it will keep track of all processes. Provides an API 
 - Can be used to test feature-branches. Adding links from pull-requests to this server and let this server spawn servers running those features.
 - ...
 
+See example in this sandbox:
+https://github.com/tomasbjerre/serverless-sandbox
+
 ## Matchers
 
 - Put them in a folder
