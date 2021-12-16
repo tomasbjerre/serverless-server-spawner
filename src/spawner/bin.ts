@@ -24,7 +24,7 @@ const program = new Command()
   .option(
     '-d, --dashboardUrl <url>',
     'Base URL of dashboard',
-    'http://localhost'
+    'http://localhost:8080'
   )
   .option(
     '-ttl, --time-to-live <minutes>',

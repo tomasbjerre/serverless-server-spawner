@@ -1,23 +1,30 @@
 <html>
   <head>
-    <script src="vue.js"></script>
     <script src="jquery.js"></script>
   </head>
   <body>
-    <div id="app">Servers: {{ servers }}</div>
+    <label>Servers</label>
+    <div id="servers"></div>
 
     <script>
-      var app = new Vue({
-        el: '#app',
-        data: {
-          servers: [],
-        },
-        mounted: function () {
-          $.get('api/servers', function (servers) {
-            this.servers = servers;
-          });
-        },
-      });
+      function updateServerList() {
+        $.get('api/servers', function (servers) {
+          $('#servers').empty();
+          for (let server of servers) {
+            $('#servers').append(
+              `<li><a href="http://localhost:${server.port}" target="_blank">${server.name}</a></li>`
+            );
+          }
+        });
+      }
+
+      function pulse() {
+        updateServerList();
+      }
+
+      var intervalId = setInterval(function () {
+        pulse();
+      }, 5000);
     </script>
   </body>
 </html>

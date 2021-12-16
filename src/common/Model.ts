@@ -14,6 +14,7 @@ export interface Server {
   id: ServerId;
   cloneUrl: string;
   branch: string;
+  port: number | undefined;
 }
 
 export interface Matcher {

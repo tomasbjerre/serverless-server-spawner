@@ -8,7 +8,7 @@ import { getMatched } from '../common/common';
 import { Workspace } from '../common/workspace';
 import { Server } from '../common/Model';
 import { spawnProcess } from '../common/process';
-import { SIGTERM } from 'constants';
+import { SIGTERM, SIGILL } from 'constants';
 const pkgJson = require(path.join(__dirname, '..', '..', 'package.json'));
 const { execSync } = require('child_process');
 const events = require('events');
@@ -41,10 +41,10 @@ program.parse(process.argv);
 const eventEmitter = new events.EventEmitter();
 const serverDir = path.join(program.opts().workspace, program.opts().server);
 const workspace = new Workspace(program.opts().workspace);
-const timeToLive = program.opts().timeToLive;
+const timeToLive = parseInt(program.opts().timeToLive);
 const matchersFolder = program.opts().matchersFolder;
-const minimumPortNumber = program.opts().minimumPortNumber;
-const maximumPortNumber = program.opts().maximumPortNumber;
+const minimumPortNumber = parseInt(program.opts().minimumPortNumber);
+const maximumPortNumber = parseInt(program.opts().maximumPortNumber);
 
 function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
   const p = spawnProcess(
@@ -92,7 +92,7 @@ function spawnServer(
 async function findFreePort(min: number, max: number): Promise<number> {
   const attempts = (max - min) * 2;
   for (let i = 0; i <= attempts; i++) {
-    const r = Math.random() * (max - min) + min;
+    const r = min + Math.round(Math.random() * (max - min));
     const available = await portastic.test(r);
     if (available) {
       return r;
@@ -128,15 +128,16 @@ if (program.opts().task == 'spawn') {
     );
     const serverFile = workspace.getServerFile(serverId);
     serverToSpawn.name = matched.name;
+    serverToSpawn.port = portNumber;
     fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
-    eventEmitter.once('success', () => {
-      fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
-      setTimeout(() => {
-        console.log(
-          `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
-        );
-        process.kill(spawnedServerProcess.pid, SIGTERM);
-      }, timeToLive * 60 * 1000);
-    });
+    console.log(
+      `Will kill '${serverToSpawn.name}' with pid ${spawnedServerProcess.pid} after ${timeToLive} minutes`
+    );
+    setTimeout(() => {
+      console.log(
+        `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
+      );
+      process.kill(spawnedServerProcess.pid, SIGILL);
+    }, timeToLive * 60 * 1000);
   });
 }

@@ -4,7 +4,7 @@ const { spawn } = require('child_process');
 
 export const shutdownProcess = (
   pid: ProcessId,
-  signal = 'SIGTERM',
+  signal = 'SIGILL',
   timeout = 20000
 ) =>
   new Promise<void>((resolve, reject) => {

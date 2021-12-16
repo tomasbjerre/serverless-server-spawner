@@ -1,6 +1,7 @@
 import { v4 as uuidv4, validate } from 'uuid';
 import { Matched, Matcher } from './Model';
 import fs from 'fs';
+import path from 'path';
 
 export function randomString(length = 10) {
   return (Math.random() + 1).toString(36).substring(length);
@@ -20,22 +21,32 @@ export function getMatched(
 ): Matched {
   const matchers = fs
     .readdirSync(matchersFolder)
-    .filter((it) => it.endsWith('.matcher.js'))
+    .filter((it) => it.endsWith('.matcher.js'));
+  if (matchers.length == 0) {
+    throw `No matcher found in ${matchersFolder}, they must be named '<anything>.matcher.js'`;
+  }
+  const matchingMatchers = matchers
     .map((it) => {
-      return { file: it, matcher: require(it) as Matcher };
+      return {
+        file: it,
+        matcher: require(path.join(matchersFolder, it)) as Matcher,
+      };
     })
     .filter((it) => it.matcher.isMatching(repoFolder));
-  if (matchers.length == 0) {
+  if (matchingMatchers.length == 0) {
     throw `No matcher in ${matchersFolder} matched ${repoFolder}`;
   }
-  if (matchers.length > 1) {
-    throw `Several matchers in ${matchersFolder} matched ${repoFolder}: ${matchers.map(
+  if (matchingMatchers.length > 1) {
+    throw `Several matchers in ${matchersFolder} matched ${repoFolder}: ${matchingMatchers.map(
       (it) => it.file
     )}`;
   }
-  const matcher = matchers[0].matcher;
+  const matcher = matchingMatchers[0].matcher;
+  const name = matcher.getName(repoFolder);
+  const startCommand = matcher.getStartCommand(repoFolder);
+  console.log(`Matched '${name}' that can be started with '${startCommand}'`);
   return {
-    name: matcher.getName(repoFolder),
-    startCommand: matcher.getStartCommand(repoFolder),
+    name,
+    startCommand,
   } as Matched;
 }

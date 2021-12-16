@@ -96,6 +96,7 @@ export class Workspace {
       branch,
       id: serverId,
       name: undefined,
+      port: undefined,
     };
     console.log(`created ${serverFolder}`);
     const filename = path.join(serverFolder, SERVER_FILE);
