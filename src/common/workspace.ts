@@ -37,9 +37,11 @@ export class Workspace {
   }
 
   public getServerState(id: ServerId): ServerLogFile | 'stop' {
-    if (this.getServerPid(id, 'clone') != -1) return 'clone';
-    if (this.getServerPid(id, 'run') != -1) return 'run';
-    if (this.getServerPid(id, 'spawn') != -1) return 'spawn';
+    for (let kind of ['run', 'prepare', 'clone', 'spawn'] as ServerLogFile[]) {
+      if (this.getServerPid(id, kind) != -1) {
+        return kind;
+      }
+    }
     return 'stop';
   }
 

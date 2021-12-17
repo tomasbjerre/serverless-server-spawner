@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
+import fsextra from 'fs-extra';
 import path from 'path';
 const portastic = require('portastic');
 import { Command, Option } from 'commander';
 import { getMatched } from '../common/common';
 import { Workspace } from '../common/workspace';
-import { Server, ServerLogFile } from '../common/Model';
+import { Server } from '../common/Model';
 import { spawnProcess } from '../common/process';
 import { SIGILL } from 'constants';
 const pkgJson = require(path.join(__dirname, '..', '..', 'package.json'));
@@ -113,7 +114,7 @@ if (program.opts().task == 'spawn') {
         `Old revision of ${repoFolder} was ${oldRevision}, replacing it with new code.`
       );
       if (fs.existsSync(repoFolder)) {
-        fs.unlinkSync(repoFolder);
+        fsextra.removeSync(repoFolder);
       }
       fs.renameSync(cloneFolder, repoFolder);
     }
@@ -154,7 +155,7 @@ if (program.opts().task == 'spawn') {
         console.log(
           `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
         );
-        process.kill(spawnedServerProcess.pid, SIGILL);
+        process.exit();
       }, timeToLive * 60 * 1000);
     });
   });
