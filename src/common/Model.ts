@@ -53,4 +53,5 @@ export interface ServerSettings {
   cacheTtl: number;
   minimumPortNumber: number;
   maximumPortNumber: number;
+  cleanup: boolean;
 }

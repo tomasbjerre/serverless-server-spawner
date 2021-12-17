@@ -41,23 +41,23 @@ Content should be like:
 
 ```js
 function isMatching(repoFolder) {
-    try {
-        return require(`${repoFolder}/package.json`).scripts["start"] != undefined
-    } catch {
-        return false;
-    }
+  try {
+    return require(`${repoFolder}/package.json`).scripts['start'] != undefined;
+  } catch {
+    return false;
+  }
 }
 
 function getName(repoFolder) {
-    return require(`${repoFolder}/package.json`).name
+  return require(`${repoFolder}/package.json`).name;
 }
 
 function getStartCommand(repoFolder) {
-    // Environment variable named "PORT" contains the allocated port
-    return `npm run start`
+  // Environment variable named "PORT" contains the allocated port
+  return `npm run start`;
 }
 
-module.exports = { getName, getStartCommand, isMatching }
+module.exports = { getName, getStartCommand, isMatching };
 ```
 
 And you point at them with:

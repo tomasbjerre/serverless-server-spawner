@@ -1,4 +1,5 @@
 import fs from 'fs';
+import fsextra from 'fs-extra';
 import path from 'path';
 import { Server, ServerId, ServerLogFile, ProcessId } from './Model';
 import { randomUUID, validateUuid } from './common';
@@ -90,6 +91,10 @@ export class Workspace {
     const server = this.getServer(id);
     const serverFolder = path.join(this.folder, server.id);
     fs.unlinkSync(serverFolder);
+  }
+
+  public removeAll() {
+    fsextra.emptyDirSync(this.folder);
   }
 
   private createServer(cloneUrl: string, branch: string): ServerId {

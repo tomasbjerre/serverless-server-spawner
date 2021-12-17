@@ -54,7 +54,11 @@ const program = new Command()
     'Maximum port number to use for spawned servers',
     '9999'
   )
-  .option('-ct, --cache-ttl <minutes>', 'Cache time to live, seconds', '120');
+  .option('-ct, --cache-ttl <minutes>', 'Cache time to live, seconds', '120')
+  .option(
+    '-nc, --no-cleanup',
+    'Do not cleanup state on startup: kill servers and clean workspace'
+  );
 program.parse(process.argv);
 
 const port = program.opts().port;
@@ -70,6 +74,7 @@ const bitbucketServerProjects = program.opts().bitbucketServerProjects;
 const cacheTtl = program.opts().cacheTtl;
 const minimumPortNumber = program.opts().minimumPortNumber;
 const maximumPortNumber = program.opts().maximumPortNumber;
+const cleanup = program.opts().cleanup;
 const bitbucketServer = bitbucketServerAccessToken
   ? ({
       url: bitbucketServerUrl,
@@ -83,10 +88,11 @@ console.log(`
  workspace: ${workspace}
  matchersFolder: ${matchersFolder}
  timeToLive: ${timeToLive}
- bitbucketServer: ${bitbucketServer}
+ bitbucketServer: ${bitbucketServer ? 'configured' : 'not configured'}
  cacheTtl: ${cacheTtl}
  minimumPortNumber: ${minimumPortNumber}
  maximumPortNumber: ${maximumPortNumber}
+ cleanup: ${cleanup}
 
  http://localhost:${port}
 `);
@@ -102,4 +108,5 @@ run({
   cacheTtl,
   minimumPortNumber,
   maximumPortNumber,
+  cleanup,
 });

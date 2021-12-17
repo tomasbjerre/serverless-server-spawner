@@ -8,6 +8,28 @@ import { GitService } from '../common/GitService';
 
 export function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
+
+  async function killitwithfire() {
+    for (let server of workspace.getServers()) {
+      for (let state of ['run', 'spawn', 'clone'] as ServerLogFile[]) {
+        const pid = workspace.getServerPid(server.id, state);
+        if (pid != -1) {
+          console.log(`killing ${server.id} ${state} ${pid}`);
+          try {
+            await shutdownProcess(pid);
+          } catch (e) {
+            console.log(`Was unable to kill ${pid}`, e);
+          }
+        }
+      }
+    }
+    workspace.removeAll();
+  }
+
+  if (settings.cleanup) {
+    killitwithfire();
+  }
+
   const cache = new NodeCache({
     stdTTL: settings.cacheTtl * 60,
   });
@@ -117,17 +139,7 @@ export function run(settings: ServerSettings) {
   });
 
   app.post('/api/killitwithfire', async function (req: Request, res: Response) {
-    for (let server of workspace.getServers()) {
-      for (let state of ['clone', 'spawn', 'run'] as ServerLogFile[]) {
-        const pid = workspace.getServerPid(server.id, state);
-        if (pid != -1) {
-          console.log(`killing ${state} ${pid}`);
-          await shutdownProcess(pid);
-        }
-      }
-      console.log(`removing server ${server.id}`);
-      workspace.removeServer(server.id);
-    }
+    await killitwithfire();
     res.json({});
   });
 
