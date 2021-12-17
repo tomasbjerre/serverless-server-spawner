@@ -3,6 +3,7 @@ import fsextra from 'fs-extra';
 import path from 'path';
 import { Server, ServerId, ServerLogFile, ProcessId } from './Model';
 import { randomUUID, validateUuid } from './common';
+import { processExists } from './process';
 
 const SERVER_FILE = 'server.json';
 const REPO_FOLDER = 'repo';
@@ -83,7 +84,10 @@ export class Workspace {
   public getServerPid(id: ServerId, kind: ServerLogFile): ProcessId {
     const pidFile = this.getServerPidFile(id, kind);
     if (fs.existsSync(pidFile)) {
-      return parseInt(fs.readFileSync(pidFile, 'utf8'));
+      const pid = parseInt(fs.readFileSync(pidFile, 'utf8'));
+      if (processExists(pid)) {
+        return pid;
+      }
     }
     return -1;
   }

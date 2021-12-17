@@ -3,7 +3,11 @@ import express, { Response, Request } from 'express';
 import NodeCache from 'node-cache';
 import { Workspace } from '../common/workspace';
 import { ServerId, ServerLogFile, ServerSettings } from '../common/Model';
-import { shutdownProcess, spawnProcess } from '../common/process';
+import {
+  shutdownProcess,
+  spawnProcess,
+  processExists,
+} from '../common/process';
 import { GitService } from '../common/GitService';
 
 export async function run(settings: ServerSettings) {
@@ -16,7 +20,7 @@ export async function run(settings: ServerSettings) {
       if (pid != -1) {
         console.log(`killing ${serverId} ${state} ${pid}`);
         try {
-          await shutdownProcess(pid);
+          shutdownProcess(pid);
         } catch (e) {
           console.log(`Was unable to kill ${pid}`, e);
         }
