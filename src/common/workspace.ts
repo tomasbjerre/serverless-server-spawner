@@ -3,7 +3,7 @@ import fsextra from 'fs-extra';
 import path from 'path';
 import { Server, ServerId, ServerLogFile, ProcessId } from './Model';
 import { randomUUID, validateUuid } from './common';
-import { processExists } from './process';
+import { processExists, shutdownProcess, spawnProcess } from './process';
 
 const SERVER_FILE = 'server.json';
 const REPO_FOLDER = 'repo';
@@ -38,13 +38,8 @@ export class Workspace {
 
   public getServerState(id: ServerId): ServerLogFile | 'stop' {
     if (this.getServerPid(id, 'clone') != -1) return 'clone';
-    if (
-      this.getServerPid(id, 'spawn') != -1 &&
-      this.getServerPid(id, 'run') != -1
-    )
-      return 'run';
-    if (this.getServerPid(id, 'spawn') != -1) return 'spawn';
     if (this.getServerPid(id, 'run') != -1) return 'run';
+    if (this.getServerPid(id, 'spawn') != -1) return 'spawn';
     return 'stop';
   }
 
@@ -118,5 +113,46 @@ export class Workspace {
     fs.writeFileSync(filename, JSON.stringify(repo, null, 4));
     console.log(`created ${filename}`);
     return serverId;
+  }
+
+  public async stopServer(serverId: ServerId) {
+    console.log(`stopping server ${serverId}`);
+    for (let state of ['run', 'prepare', 'spawn', 'clone'] as ServerLogFile[]) {
+      const pid = this.getServerPid(serverId, state);
+      if (pid != -1) {
+        console.log(`killing ${serverId} ${state} ${pid}`);
+        try {
+          shutdownProcess(pid);
+        } catch (e) {
+          console.log(`Was unable to kill ${pid}`, e);
+        }
+      }
+    }
+  }
+
+  public async killitwithfire() {
+    console.log(`Killing any spawned processes in ${this.folder} ...`);
+    for (let server of this.getServers()) {
+      await this.stopServer(server.id);
+    }
+    console.log(`Emptying ${this.folder} ...`);
+    this.removeAll();
+  }
+
+  public spawnServerCommand(
+    serverId: string,
+    kind: ServerLogFile,
+    folder: string,
+    command: string,
+    opts: any
+  ): any {
+    const logFile = this.getServerLogFile(serverId, kind);
+    const pidFile = this.getServerPidFile(serverId, kind);
+    const allOpts = {
+      shell: true,
+      cwd: folder,
+      ...opts,
+    };
+    return spawnProcess(command, [], logFile, pidFile, allOpts);
   }
 }

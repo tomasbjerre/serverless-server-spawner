@@ -3,69 +3,39 @@ import express, { Response, Request } from 'express';
 import NodeCache from 'node-cache';
 import { Workspace } from '../common/workspace';
 import { ServerId, ServerLogFile, ServerSettings } from '../common/Model';
-import {
-  shutdownProcess,
-  spawnProcess,
-  processExists,
-} from '../common/process';
 import { GitService } from '../common/GitService';
+
+function spawnServer(
+  serverId: ServerId,
+  settings: ServerSettings,
+  workspace: Workspace
+) {
+  const args = [
+    path.join(__dirname, '..', 'internal', 'bin.js'),
+    '--workspace',
+    settings.workspace,
+    '--matchers-folder',
+    settings.matchersFolder,
+    '--task',
+    'spawn',
+    '--server',
+    serverId,
+    '--time-to-live',
+    settings.timeToLive,
+    '--minimum-port-number',
+    settings.minimumPortNumber,
+    '--maximum-port-number',
+    settings.maximumPortNumber,
+  ].join(' ');
+  const command = `nodejs ${args}`;
+  workspace.spawnServerCommand(serverId, 'spawn', __dirname, command, {});
+}
 
 export async function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
 
-  async function stopServer(serverId: ServerId) {
-    console.log(`stopping server ${serverId}`);
-    for (let state of ['run', 'prepare', 'spawn', 'clone'] as ServerLogFile[]) {
-      const pid = workspace.getServerPid(serverId, state);
-      if (pid != -1) {
-        console.log(`killing ${serverId} ${state} ${pid}`);
-        try {
-          shutdownProcess(pid);
-        } catch (e) {
-          console.log(`Was unable to kill ${pid}`, e);
-        }
-      }
-    }
-  }
-
-  async function killitwithfire() {
-    console.log(`Killing any spawned processes in ${settings.workspace} ...`);
-    for (let server of workspace.getServers()) {
-      await stopServer(server.id);
-    }
-    console.log(`Emptying ${settings.workspace} ...`);
-    workspace.removeAll();
-  }
-
   if (settings.cleanup) {
-    await killitwithfire();
-  }
-
-  function spawnServer(serverId: ServerId) {
-    const spawnLog = workspace.getServerLogFile(serverId, 'spawn');
-    const spawnPidFile = workspace.getServerPidFile(serverId, 'spawn');
-    spawnProcess(
-      'nodejs',
-      [
-        path.join(__dirname, '..', 'internal', 'bin.js'),
-        '--workspace',
-        settings.workspace,
-        '--matchers-folder',
-        settings.matchersFolder,
-        '--task',
-        'spawn',
-        '--server',
-        serverId,
-        '--time-to-live',
-        settings.timeToLive,
-        '--minimum-port-number',
-        settings.minimumPortNumber,
-        '--maximum-port-number',
-        settings.maximumPortNumber,
-      ],
-      spawnLog,
-      spawnPidFile
-    );
+    await workspace.killitwithfire();
   }
 
   const cache = new NodeCache({
@@ -77,7 +47,7 @@ export async function run(settings: ServerSettings) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
     const serverId = workspace.getOrCreate(cloneUrl, branch);
-    spawnServer(serverId);
+    spawnServer(serverId, settings, workspace);
     res.redirect(`${settings.dashboardUrl}#action=dispatch&server=${serverId}`);
   });
 
@@ -102,9 +72,9 @@ export async function run(settings: ServerSettings) {
     const id = req.params.id as ServerId;
     const serverState = workspace.getServerState(id);
     if (serverState == 'stop') {
-      spawnServer(id);
-      res.json({});
+      spawnServer(id, settings, workspace);
     }
+    res.json({});
   });
 
   app.post(
@@ -113,7 +83,7 @@ export async function run(settings: ServerSettings) {
       const id = req.params.id as ServerId;
       const serverState = workspace.getServerState(id);
       if (serverState != 'stop') {
-        await stopServer(id);
+        await workspace.stopServer(id);
       }
       res.json({});
     }
@@ -183,7 +153,7 @@ export async function run(settings: ServerSettings) {
   });
 
   app.post('/api/killitwithfire', async function (req: Request, res: Response) {
-    await killitwithfire();
+    await workspace.killitwithfire();
     res.json({});
   });
 

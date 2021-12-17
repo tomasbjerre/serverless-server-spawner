@@ -82,23 +82,6 @@ function getGitRevision(folder: string): string {
   }
 }
 
-function spawnServerCommand(
-  serverId: string,
-  kind: ServerLogFile,
-  folder: string,
-  command: string,
-  opts: any
-): any {
-  const logFile = workspace.getServerLogFile(serverId, kind);
-  const pidFile = workspace.getServerPidFile(serverId, kind);
-  const allOpts = {
-    shell: true,
-    cwd: folder,
-    ...opts,
-  };
-  return spawnProcess(command, [], logFile, pidFile, allOpts);
-}
-
 async function findFreePort(min: number, max: number): Promise<number> {
   const attempts = (max - min) * 2;
   for (let i = 0; i <= attempts; i++) {
@@ -139,7 +122,7 @@ if (program.opts().task == 'spawn') {
     console.log(`Using port ${portNumber}`);
     const opts = { env: { ...process.env, PORT: portNumber } };
 
-    const prepareServerProcess = spawnServerCommand(
+    const prepareServerProcess = workspace.spawnServerCommand(
       serverId,
       'prepare',
       repoFolder,
@@ -152,7 +135,7 @@ if (program.opts().task == 'spawn') {
     });
 
     eventEmitter.once('success', async () => {
-      const spawnedServerProcess = spawnServerCommand(
+      const spawnedServerProcess = workspace.spawnServerCommand(
         serverId,
         'run',
         repoFolder,
