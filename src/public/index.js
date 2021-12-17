@@ -21,24 +21,46 @@ function clearcache() {
   $.post('/api/clearcache', function () {});
 }
 
+function startServer(id) {
+  $.post('/api/servers/' + id + '/start', function () {});
+}
+
+function stopServer(id) {
+  $.post('/api/servers/' + id + '/stop', function () {});
+}
+
 function updateServerList() {
   $.get('api/servers', function (servers) {
     $('#servers').empty();
     for (let server of servers) {
-      if (server.name) {
-        $('#servers').append(
-          `<li>
-          <a href="http://localhost:${server.port}" target="_blank">${server.name}</a> -
-          <a href="/api/servers/${server.id}/state" target="_blank"><i>state</i></a>
+      let url = server.port
+        ? 'http://' + window.location.hostname + ':' + server.port
+        : '#';
+      $('#servers').append(
+        `<li>
+          <a href="${url}" target="_blank">${
+          server.name ? server.name : server.id
+        }</a> -
+          <a href="/api/servers/${
+            server.id
+          }/state" target="_blank"><i>state</i></a>
+          <button onClick="startServer('${server.id}')">Start</button>
+          <button onClick="stopServer('${server.id}')">Stop</button>
           Log:
-          <a href="/api/servers/${server.id}/log/clone" target="_blank"><i>clone</i></a>
-          <a href="/api/servers/${server.id}/log/run" target="_blank"><i>run</i></a>
-          <a href="/api/servers/${server.id}/log/spawn" target="_blank"><i>spawn</i></a>
+          <a href="/api/servers/${
+            server.id
+          }/log/clone" target="_blank"><i>clone</i></a>
+          <a href="/api/servers/${
+            server.id
+          }/log/prepare" target="_blank"><i>prepare</i></a>
+          <a href="/api/servers/${
+            server.id
+          }/log/run" target="_blank"><i>run</i></a>
+          <a href="/api/servers/${
+            server.id
+          }/log/spawn" target="_blank"><i>spawn</i></a>
           </li>`
-        );
-      } else {
-        $('#servers').append(`<li>Spawning ${server.id}...</li>`);
-      }
+      );
     }
   });
 }
@@ -48,14 +70,25 @@ function checkDispatch() {
   var hashParams = getHashParams();
   if (hashParams.action == 'dispatch') {
     $('#loading').show();
-    $.get('api/servers', function (servers) {
-      $('#servers').empty();
-      for (var server of servers) {
-        if (server.id == hashParams.server && server.port) {
-          var url = `${window.location.protocol}//${window.location.hostname}:${server.port}`;
-          $('#dispatch').html(`Navigating to ${url} ...`);
-          window.location.href = url;
-        }
+    $.get('api/servers/' + hashParams.server + '/state', function (server) {
+      if (server.state == 'run') {
+        $.get('api/servers', function (servers) {
+          for (let serverDetails of servers) {
+            if (serverDetails.id == hashParams.server) {
+              var url = `${window.location.protocol}//${window.location.hostname}:${serverDetails.port}`;
+              $('#dispatch').html(`Navigating to ${url} ...`);
+              window.location.href = url;
+            }
+          }
+        });
+      } else if (server.state == 'clone') {
+        $('#dispatch').html(`Cloning ...`);
+      } else if (server.state == 'spawn') {
+        $('#dispatch').html(`Spawn ...`);
+      } else if (server.state == 'stop') {
+        $('#dispatch').html(``);
+        var url = `${window.location.protocol}//${window.location.host}`;
+        window.location.href = url;
       }
     });
   }
@@ -69,5 +102,5 @@ $(document).ready(function () {
   pulse();
   var intervalId = setInterval(function () {
     pulse();
-  }, 10000);
+  }, 5000);
 });

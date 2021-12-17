@@ -2,11 +2,12 @@ export type ProcessId = number;
 
 export type ServerId = string;
 
-export type ServerLogFile = 'clone' | 'run' | 'spawn';
+export type ServerLogFile = 'clone' | 'prepare' | 'run' | 'spawn';
 
 export interface Matched {
   name: string;
   startCommand: string;
+  prepareCommand: string;
 }
 
 export interface Server {
@@ -19,6 +20,7 @@ export interface Server {
 
 export interface Matcher {
   getName(repoFolder: string): string;
+  getPrepareCommand(repoFolder: string): string;
   getStartCommand(repoFolder: string): string;
   isMatching(repoFolder: string): boolean;
 }

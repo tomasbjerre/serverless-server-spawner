@@ -6,9 +6,9 @@ const portastic = require('portastic');
 import { Command, Option } from 'commander';
 import { getMatched } from '../common/common';
 import { Workspace } from '../common/workspace';
-import { Server } from '../common/Model';
+import { Server, ServerLogFile } from '../common/Model';
 import { spawnProcess } from '../common/process';
-import { SIGTERM, SIGILL } from 'constants';
+import { SIGILL } from 'constants';
 const pkgJson = require(path.join(__dirname, '..', '..', 'package.json'));
 const { execSync } = require('child_process');
 const events = require('events');
@@ -63,6 +63,9 @@ function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
     { cwd: serverDir }
   );
   p.on('close', (code: number) => {
+    console.log(
+      `Cloned ${serverToSpawn.cloneUrl} ${serverToSpawn.branch} to ${cloneFolder}`
+    );
     if (code !== 0) {
       eventEmitter.emit('error');
     }
@@ -71,22 +74,29 @@ function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
 }
 
 function getGitRevision(folder: string): string {
-  return execSync('git', ['git', 'rev-parse', 'HEAD'], { cwd: folder });
+  try {
+    return execSync(`git rev-parse HEAD -C "${folder}"`).toString().trim();
+  } catch (e) {
+    console.log(`unable to get git revision in ${folder}`);
+    throw e;
+  }
 }
 
-function spawnServer(
+function spawnServerCommand(
   serverId: string,
+  kind: ServerLogFile,
   folder: string,
-  startCommand: string,
-  port: number
+  command: string,
+  opts: any
 ): any {
-  const logFile = workspace.getServerLogFile(serverId, 'run');
-  const pidFile = workspace.getServerPidFile(serverId, 'run');
-  return spawnProcess(startCommand, [], logFile, pidFile, {
+  const logFile = workspace.getServerLogFile(serverId, kind);
+  const pidFile = workspace.getServerPidFile(serverId, kind);
+  const allOpts = {
     shell: true,
     cwd: folder,
-    env: { ...process.env, PORT: port },
-  });
+    ...opts,
+  };
+  return spawnProcess(command, [], logFile, pidFile, allOpts);
 }
 
 async function findFreePort(min: number, max: number): Promise<number> {
@@ -110,34 +120,59 @@ if (program.opts().task == 'spawn') {
   cloneRepo(cloneFolder, serverToSpawn);
 
   eventEmitter.once('success', async () => {
-    if (fs.existsSync(repoFolder)) {
-      const oldRevision = getGitRevision(repoFolder);
-      const newRevision = getGitRevision(cloneFolder);
-      if (oldRevision != newRevision) {
+    const oldRevision =
+      (fs.existsSync(repoFolder) && getGitRevision(repoFolder)) ||
+      'not available';
+    const newRevision = getGitRevision(cloneFolder);
+    console.log(`New revision of ${cloneFolder} is ${newRevision}`);
+    if (oldRevision != newRevision) {
+      console.log(
+        `Old revision of ${repoFolder} was ${oldRevision}, replacing it with new code.`
+      );
+      if (fs.existsSync(repoFolder)) {
         fs.unlinkSync(repoFolder);
-        fs.renameSync(cloneFolder, repoFolder);
       }
+      fs.renameSync(cloneFolder, repoFolder);
     }
     const matched = getMatched(matchersFolder, repoFolder);
     const portNumber = await findFreePort(minimumPortNumber, maximumPortNumber);
-    const spawnedServerProcess = spawnServer(
+    console.log(`Using port ${portNumber}`);
+    const opts = { env: { ...process.env, PORT: portNumber } };
+
+    const prepareServerProcess = spawnServerCommand(
       serverId,
-      cloneFolder,
-      matched.startCommand,
-      portNumber
+      'prepare',
+      repoFolder,
+      matched.prepareCommand,
+      opts
     );
-    const serverFile = workspace.getServerFile(serverId);
-    serverToSpawn.name = matched.name;
-    serverToSpawn.port = portNumber;
-    fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
-    console.log(
-      `Will kill '${serverToSpawn.name}' with pid ${spawnedServerProcess.pid} after ${timeToLive} minutes`
-    );
-    setTimeout(() => {
-      console.log(
-        `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
+    prepareServerProcess.on('close', () => {
+      console.log(`Preparation done with '${matched.prepareCommand}'`);
+      eventEmitter.emit('success');
+    });
+
+    eventEmitter.once('success', async () => {
+      const spawnedServerProcess = spawnServerCommand(
+        serverId,
+        'run',
+        repoFolder,
+        matched.startCommand,
+        opts
       );
-      process.kill(spawnedServerProcess.pid, SIGILL);
-    }, timeToLive * 60 * 1000);
+
+      const serverFile = workspace.getServerFile(serverId);
+      serverToSpawn.name = matched.name;
+      serverToSpawn.port = portNumber;
+      fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
+      console.log(
+        `Will kill '${serverToSpawn.name}' with pid ${spawnedServerProcess.pid} after ${timeToLive} minutes`
+      );
+      setTimeout(() => {
+        console.log(
+          `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
+        );
+        process.kill(spawnedServerProcess.pid, SIGILL);
+      }, timeToLive * 60 * 1000);
+    });
   });
 }

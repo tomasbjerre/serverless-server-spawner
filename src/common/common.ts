@@ -44,9 +44,13 @@ export function getMatched(
   const matcher = matchingMatchers[0].matcher;
   const name = matcher.getName(repoFolder);
   const startCommand = matcher.getStartCommand(repoFolder);
-  console.log(`Matched '${name}' that can be started with '${startCommand}'`);
+  const prepareCommand = matcher.getPrepareCommand(repoFolder);
+  console.log(
+    `Matched '${name}' that can be prepared with '${prepareCommand}' and started with '${startCommand}'`
+  );
   return {
     name,
     startCommand,
+    prepareCommand,
   } as Matched;
 }

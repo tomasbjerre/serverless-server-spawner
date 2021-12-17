@@ -35,7 +35,7 @@ export class Workspace {
       .map((it) => JSON.parse(it) as Server);
   }
 
-  public getServerState(id: ServerId): ServerLogFile | undefined {
+  public getServerState(id: ServerId): ServerLogFile | 'stop' {
     if (this.getServerPid(id, 'clone') != -1) return 'clone';
     if (
       this.getServerPid(id, 'spawn') != -1 &&
@@ -44,8 +44,9 @@ export class Workspace {
       return 'run';
     if (this.getServerPid(id, 'spawn') != -1) return 'spawn';
     if (this.getServerPid(id, 'run') != -1) return 'run';
-    return undefined;
+    return 'stop';
   }
+
   public getServer(id: ServerId): Server {
     const found = this.getServers().find((it) => it.id == id);
     if (found) {

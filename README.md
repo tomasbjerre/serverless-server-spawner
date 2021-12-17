@@ -52,6 +52,10 @@ function getName(repoFolder) {
   return require(`${repoFolder}/package.json`).name;
 }
 
+function getPrepareCommand(repoFolder) {
+  return `npm install`;
+}
+
 function getStartCommand(repoFolder) {
   // Environment variable named "PORT" contains the allocated port
   return `npm run start`;
@@ -85,6 +89,14 @@ GET /api/servers/:id
 
 ```
 GET /api/servers/:id/state
+```
+
+```
+GET /api/servers/:id/start
+```
+
+```
+GET /api/servers/:id/stop
 ```
 
 ```

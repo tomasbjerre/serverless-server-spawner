@@ -9,11 +9,11 @@ export const shutdownProcess = (
 ) =>
   new Promise<void>((resolve, reject) => {
     const intervalMillis = 20000;
+    console.log(`sending ${signal} to ${pid}`);
     process.kill(pid, signal);
     let count = 0;
     setInterval(() => {
       try {
-        console.log(`sending ${signal} to ${pid}`);
         process.kill(pid, 0);
       } catch (e) {
         console.log(`the process ${pid} does not exists anymore`);
@@ -31,14 +31,17 @@ export function spawnProcess(
   args: any[],
   logFile: string,
   pidFile: string,
-  opts = {}
+  opts: any = {}
 ): any {
+  console.log(`Spawning '${command}' and logging to ${logFile} in ${opts.cwd}`);
   const logStream = fs.createWriteStream(logFile, { flags: 'a' });
   const p = spawn(command, args, opts);
+  console.log(`Storing PID of '${command}' as ${p.pid} in ${pidFile}`);
   fs.writeFileSync(pidFile, `${p.pid}`);
   p.stdout.pipe(logStream);
   p.stderr.pipe(logStream);
   p.on('close', () => {
+    console.log(`Ended '${command}', removing ${pidFile}`);
     fs.unlinkSync(pidFile);
   });
   return p;

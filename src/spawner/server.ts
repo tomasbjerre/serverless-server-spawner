@@ -6,39 +6,40 @@ import { ServerId, ServerLogFile, ServerSettings } from '../common/Model';
 import { shutdownProcess, spawnProcess } from '../common/process';
 import { GitService } from '../common/GitService';
 
-export function run(settings: ServerSettings) {
+export async function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace);
 
-  async function killitwithfire() {
-    for (let server of workspace.getServers()) {
-      for (let state of ['run', 'spawn', 'clone'] as ServerLogFile[]) {
-        const pid = workspace.getServerPid(server.id, state);
-        if (pid != -1) {
-          console.log(`killing ${server.id} ${state} ${pid}`);
-          try {
-            await shutdownProcess(pid);
-          } catch (e) {
-            console.log(`Was unable to kill ${pid}`, e);
-          }
+  async function stopServer(serverId: ServerId) {
+    console.log(`stopping server ${serverId}`);
+    for (let state of ['run', 'prepare', 'spawn', 'clone'] as ServerLogFile[]) {
+      const pid = workspace.getServerPid(serverId, state);
+      if (pid != -1) {
+        console.log(`killing ${serverId} ${state} ${pid}`);
+        try {
+          await shutdownProcess(pid);
+        } catch (e) {
+          console.log(`Was unable to kill ${pid}`, e);
         }
+      } else {
+        console.log(`no pid for ${serverId} ${state}`);
       }
     }
+  }
+
+  async function killitwithfire() {
+    console.log(`Killing any spawned processes in ${settings.workspace} ...`);
+    for (let server of workspace.getServers()) {
+      await stopServer(server.id);
+    }
+    console.log(`Emptying ${settings.workspace} ...`);
     workspace.removeAll();
   }
 
   if (settings.cleanup) {
-    killitwithfire();
+    await killitwithfire();
   }
 
-  const cache = new NodeCache({
-    stdTTL: settings.cacheTtl * 60,
-  });
-  const app = express();
-
-  app.get('/api/dispatch', function (req: Request, res: Response) {
-    const cloneUrl = req.query.cloneurl as string;
-    const branch = req.query.branch as string;
-    const serverId = workspace.getOrCreate(cloneUrl, branch);
+  function spawnServer(serverId: ServerId) {
     const spawnLog = workspace.getServerLogFile(serverId, 'spawn');
     const spawnPidFile = workspace.getServerPidFile(serverId, 'spawn');
     spawnProcess(
@@ -63,6 +64,18 @@ export function run(settings: ServerSettings) {
       spawnLog,
       spawnPidFile
     );
+  }
+
+  const cache = new NodeCache({
+    stdTTL: settings.cacheTtl * 60,
+  });
+  const app = express();
+
+  app.get('/api/dispatch', function (req: Request, res: Response) {
+    const cloneUrl = req.query.cloneurl as string;
+    const branch = req.query.branch as string;
+    const serverId = workspace.getOrCreate(cloneUrl, branch);
+    spawnServer(serverId);
     res.redirect(`${settings.dashboardUrl}#action=dispatch&server=${serverId}`);
   });
 
@@ -83,15 +96,44 @@ export function run(settings: ServerSettings) {
     res.json({ state: serverState });
   });
 
+  app.post('/api/servers/:id/start', function (req: Request, res: Response) {
+    const id = req.params.id as ServerId;
+    const serverState = workspace.getServerState(id);
+    if (serverState == 'stop') {
+      spawnServer(id);
+      res.json({});
+    }
+  });
+
+  app.post(
+    '/api/servers/:id/stop',
+    async function (req: Request, res: Response) {
+      const id = req.params.id as ServerId;
+      const serverState = workspace.getServerState(id);
+      if (serverState != 'stop') {
+        await stopServer(id);
+      }
+      res.json({});
+    }
+  );
+
   function getLog(log: ServerLogFile, req: Request, res: Response): void {
     const id = req.params.id as ServerId;
     const logContent = workspace.getServerLog(id, log);
+    res.setHeader('content-type', 'text/plain');
     res.send(logContent);
   }
 
   app.get('/api/servers/:id/log/clone', function (req: Request, res: Response) {
     getLog('clone', req, res);
   });
+
+  app.get(
+    '/api/servers/:id/log/prepare',
+    function (req: Request, res: Response) {
+      getLog('prepare', req, res);
+    }
+  );
 
   app.get('/api/servers/:id/log/run', function (req: Request, res: Response) {
     getLog('run', req, res);
@@ -153,6 +195,10 @@ export function run(settings: ServerSettings) {
   app.use((err: any, req: any, res: any, next: any) => {
     console.error(err.stack);
     next(err);
+  });
+
+  process.on('uncaughtException', (err) => {
+    console.log(err);
   });
 
   app.listen(settings.port);
