@@ -1,4 +1,2 @@
 node_modules
-lib/*
-!.gitkeep
-serverless-server-spawner-workspace
+packages/serverless-server-spawner/lib

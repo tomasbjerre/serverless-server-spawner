@@ -1,0 +1,7 @@
+{
+  "name": "serverless-server-spawner-demo-app",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx http-server -p $PORT"
+  }
+}
