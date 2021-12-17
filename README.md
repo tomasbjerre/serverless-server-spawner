@@ -53,6 +53,7 @@ function getName(repoFolder) {
 }
 
 function getStartCommand(repoFolder) {
+    // Environment variable named "PORT" contains the allocated port
     return `npm run start`
 }
 
