@@ -40,19 +40,23 @@ Example: `serverless-matchers/example.matcher.js`
 Content should be like:
 
 ```js
+function isMatching(repoFolder) {
+    try {
+        return require(`${repoFolder}/package.json`).scripts["start"] != undefined
+    } catch {
+        return false;
+    }
+}
+
 function getName(repoFolder) {
-  return `a name, probably derived from whats inside repoFolder`;
+    return require(`${repoFolder}/package.json`).name
 }
 
 function getStartCommand(repoFolder) {
-  return `any command to run withing repoFolder`;
+    return `npm run start`
 }
 
-function isMatching(repoFolder) {
-  return true; // If this matcher matches whats inside repoFolder
-}
-
-module.exports = { getName, getStartCommand, isMatching };
+module.exports = { getName, getStartCommand, isMatching }
 ```
 
 And you point at them with:
