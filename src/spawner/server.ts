@@ -24,8 +24,6 @@ export async function run(settings: ServerSettings) {
         } catch (e) {
           console.log(`Was unable to kill ${pid}`, e);
         }
-      } else {
-        console.log(`no pid for ${serverId} ${state}`);
       }
     }
   }

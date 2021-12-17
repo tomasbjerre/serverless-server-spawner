@@ -75,6 +75,8 @@ npx serverless-server-spawner \
 
 RESTful API of the this server.
 
+The main entry point for new repo/branches is `dispatch`. It will start a server and, when started, redirect user to it.
+
 ```
 GET /api/dispatch?cloneurl={cloneUrl}&branch={branch}
 ```
@@ -100,28 +102,40 @@ GET /api/servers/:id/stop
 ```
 
 ```
+GET /api/servers/:id/log/spawn
+```
+
+```
 GET /api/servers/:id/log/clone
+```
+
+```
+GET /api/servers/:id/log/prepare
 ```
 
 ```
 GET /api/servers/:id/log/run
 ```
 
-```
-GET /api/servers/:id/log/spawn
-```
+If a Git service was configured, this will respond with clone URL:s in that service.
 
 ```
 GET /api/cloneurlcategories
 ```
 
+If a Git service was configured, this will respond with branches in categories.
+
 ```
 GET /api/cloneurlcategories/:category1/:category2/branches
 ```
 
+Clear all caches.
+
 ```
 POST /api/clearcache
 ```
+
+Stop all servers and cleanup workspace.
 
 ```
 POST /api/killitwithfire
