@@ -1,7 +1,3 @@
-This is work in progress...
-
----
-
 # Serverless Server Spawner
 
 [![NPM](https://img.shields.io/npm/v/serverless-server-spawner.svg?style=flat-square)](https://www.npmjs.com/package/serverless-server-spawner)
