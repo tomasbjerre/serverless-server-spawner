@@ -1,13 +1,7 @@
 import fs from 'fs';
 import fsextra from 'fs-extra';
 import path from 'path';
-import {
-  Server,
-  ServerId,
-  ServerLogFile,
-  ProcessId,
-  ServerSettings,
-} from './Model';
+import { Server, ServerId, ServerLogFile, ProcessId } from './Model';
 import { randomUUID, validateUuid } from './common';
 import { processExists, shutdownProcess, spawnProcess } from './process';
 
@@ -83,7 +77,7 @@ export class Workspace {
   public removeServer(id: ServerId): void {
     const server = this.getServer(id);
     const serverFolder = path.join(this.folder, server.id);
-    fs.unlinkSync(serverFolder);
+    fsextra.emptyDirSync(serverFolder);
   }
 
   public removeAll() {

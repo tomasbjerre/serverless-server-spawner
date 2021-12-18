@@ -14,17 +14,24 @@ function getHashParams() {
 }
 
 function formatTime(millis) {
+  if (millis < 0) {
+    return 0;
+  }
   var sec_num = millis / 1000;
   var hours = Math.floor(sec_num / 3600);
   var minutes = Math.floor((sec_num - hours * 3600) / 60);
-  var seconds = Math.round(sec_num - hours * 3600 - minutes * 60);
+  var seconds = Math.floor(sec_num - hours * 3600 - minutes * 60);
   return hours + ' hours, ' + minutes + ' minutes and ' + seconds + ' seconds';
 }
 
-function percentLeft(endMillis, startMillis) {
+function toPercent(endMillis, startMillis) {
   var millisLeft = endMillis - Date.now();
   var totalMillis = endMillis - startMillis;
-  return Math.round((millisLeft / totalMillis) * 100);
+  var percent = Math.round((millisLeft / totalMillis) * 100);
+  if (percent > 0) {
+    return percent;
+  }
+  return 0;
 }
 
 function killitwithfire() {
@@ -75,11 +82,10 @@ function updateServerList() {
             server.id
           }/log/spawn" target="_blank"><i>spawn</i></a>
           <br/>
-          <i>${formatTime(server.endTimestamp, server.startTimestamp)}</i>
+          <i>${formatTime(server.endTimestamp - Date.now())}</i>
           <b style="color: rgb(0,${Math.round(
-            (255 / 100) *
-              percentLeft(server.endTimestamp, server.startTimestamp)
-          )},0)">${percentLeft(server.endTimestamp, server.startTimestamp)}%</b>
+            (255 / 100) * toPercent(server.endTimestamp, server.startTimestamp)
+          )},0)">${toPercent(server.endTimestamp, server.startTimestamp)}%</b>
           </li>`
       );
     }

@@ -94,14 +94,6 @@ GET /api/servers/:id/state
 ```
 
 ```
-GET /api/servers/:id/start
-```
-
-```
-GET /api/servers/:id/stop
-```
-
-```
 GET /api/servers/:id/log/spawn
 ```
 

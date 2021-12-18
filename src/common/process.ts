@@ -32,7 +32,11 @@ export function spawnProcess(
   p.stderr.pipe(logStream);
   p.on('close', () => {
     console.log(`Ended '${command}', removing ${pidFile}`);
-    fs.unlinkSync(pidFile);
+    try {
+      fs.unlinkSync(pidFile);
+    } catch {
+      // It was probably removed by the spawner
+    }
   });
   return p;
 }

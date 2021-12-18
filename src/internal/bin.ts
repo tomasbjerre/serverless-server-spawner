@@ -139,6 +139,7 @@ if (program.opts().task == 'spawn') {
         console.log(
           `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
         );
+        workspace.removeServer(serverId);
         process.exit();
       }, timeToLive * 60 * 1000);
     });

@@ -68,27 +68,6 @@ export async function run(settings: ServerSettings) {
     res.json({ state: serverState });
   });
 
-  app.post('/api/servers/:id/start', function (req: Request, res: Response) {
-    const id = req.params.id as ServerId;
-    const serverState = workspace.getServerState(id);
-    if (serverState == 'stop') {
-      spawnServer(id, settings, workspace);
-    }
-    res.json({});
-  });
-
-  app.post(
-    '/api/servers/:id/stop',
-    async function (req: Request, res: Response) {
-      const id = req.params.id as ServerId;
-      const serverState = workspace.getServerState(id);
-      if (serverState != 'stop') {
-        await workspace.stopServer(id);
-      }
-      res.json({});
-    }
-  );
-
   function getLog(log: ServerLogFile, req: Request, res: Response): void {
     const id = req.params.id as ServerId;
     const logContent = workspace.getServerLog(id, log);
