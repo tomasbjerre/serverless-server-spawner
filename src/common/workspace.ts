@@ -56,7 +56,10 @@ export class Workspace {
 
   public getServerLog(id: ServerId, kind: ServerLogFile): string {
     const serverlogPath = this.getServerLogFile(id, kind);
-    return fs.readFileSync(serverlogPath).toString('utf8');
+    if (fs.existsSync(serverlogPath)) {
+      return fs.readFileSync(serverlogPath).toString('utf8');
+    }
+    return '';
   }
 
   public getServerPidFile(id: ServerId, kind: ServerLogFile) {

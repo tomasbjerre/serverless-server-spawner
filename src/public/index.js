@@ -1,3 +1,5 @@
+HEARTBEAT = 1000;
+
 function getHashParams() {
   var hashParams = {};
   var e,
@@ -53,24 +55,13 @@ function updateServerList() {
         `<li>
           <a href="${url}" target="_blank">${
           server.name ? server.name : server.id
-        } (${server.revision})</a> -
+        } (${server.branch} ${server.revision})</a> -
           <a href="/api/servers/${
             server.id
           }/state" target="_blank"><i>state</i></a>
           <br/>
           Log:
-          <a href="/api/servers/${
-            server.id
-          }/log/clone" target="_blank"><i>clone</i></a>
-          <a href="/api/servers/${
-            server.id
-          }/log/prepare" target="_blank"><i>prepare</i></a>
-          <a href="/api/servers/${
-            server.id
-          }/log/run" target="_blank"><i>run</i></a>
-          <a href="/api/servers/${
-            server.id
-          }/log/spawn" target="_blank"><i>spawn</i></a>
+          <a href="/#action=log&server=${server.id}">log</a>
           <br/>
           <i>${formatTime(server.endTimestamp - Date.now())}</i>
           <b style="color: rgb(0,${Math.round(
@@ -87,6 +78,7 @@ function checkDispatch() {
   var hashParams = getHashParams();
   if (hashParams.action == 'dispatch') {
     $('#loading').show();
+    showLog(hashParams.server);
     $.get('api/servers/' + hashParams.server + '/state', function (server) {
       if (server.state == 'run') {
         $.get('api/servers', function (servers) {
@@ -104,20 +96,55 @@ function checkDispatch() {
         $('#dispatch').html(`Spawn ...`);
       } else if (server.state == 'stop') {
         $('#dispatch').html(``);
-        var url = `${window.location.protocol}//${window.location.host}`;
+        var url = `${window.location.protocol}//${window.location.host}/#action=failed&server=${hashParams.server}`;
         window.location.href = url;
       }
     });
   }
 }
 
+function checkStartupFailed() {
+  var hashParams = getHashParams();
+  if (hashParams.action == 'failed') {
+    showLog(hashParams.server);
+  }
+}
+
+function checkLog() {
+  var hashParams = getHashParams();
+  if (hashParams.action == 'log') {
+    $.get('api/servers/' + hashParams.server + '/state', function (server) {
+      if (server.state == 'stop') {
+        var url = `${window.location.protocol}//${window.location.host}`;
+        window.location.href = url;
+      }
+    });
+    showLog(hashParams.server);
+  }
+}
+
+function showLog(server) {
+  ['run', 'prepare', 'clone', 'spawn'].forEach((kind) => {
+    $.get(`api/servers/${server}/log/${kind}`, function (log) {
+      if (log.trim() != '') {
+        $(`#log-${kind}`)
+          .show()
+          .val(log)
+          .scrollTop($(`#log-${kind}`)[0].scrollHeight);
+      }
+    });
+  });
+}
+
 function pulse() {
   checkDispatch();
+  checkStartupFailed();
+  checkLog();
   updateServerList();
 }
 $(document).ready(function () {
   pulse();
   var intervalId = setInterval(function () {
     pulse();
-  }, 5000);
+  }, HEARTBEAT);
 });
