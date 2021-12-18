@@ -42,14 +42,6 @@ function clearcache() {
   $.post('/api/clearcache', function () {});
 }
 
-function startServer(id) {
-  $.post('/api/servers/' + id + '/start', function () {});
-}
-
-function stopServer(id) {
-  $.post('/api/servers/' + id + '/stop', function () {});
-}
-
 function updateServerList() {
   $.get('api/servers', function (servers) {
     $('#servers').empty();
@@ -65,8 +57,6 @@ function updateServerList() {
           <a href="/api/servers/${
             server.id
           }/state" target="_blank"><i>state</i></a>
-          <button onClick="startServer('${server.id}')">Start</button>
-          <button onClick="stopServer('${server.id}')">Stop</button>
           <br/>
           Log:
           <a href="/api/servers/${
