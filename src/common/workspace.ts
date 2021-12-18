@@ -1,7 +1,13 @@
 import fs from 'fs';
 import fsextra from 'fs-extra';
 import path from 'path';
-import { Server, ServerId, ServerLogFile, ProcessId } from './Model';
+import {
+  Server,
+  ServerId,
+  ServerLogFile,
+  ProcessId,
+  ServerSettings,
+} from './Model';
 import { randomUUID, validateUuid } from './common';
 import { processExists, shutdownProcess, spawnProcess } from './process';
 
@@ -9,20 +15,9 @@ const SERVER_FILE = 'server.json';
 const REPO_FOLDER = 'repo';
 
 export class Workspace {
-  constructor(private folder: string) {
+  constructor(private folder: string, private timeToLive: number) {
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder);
-    }
-  }
-
-  public getOrCreate(cloneUrl: string, branch: string): ServerId {
-    const found = this.getServers().find(
-      (it) => it.branch == branch && it.cloneUrl == cloneUrl
-    );
-    if (found) {
-      return found.id;
-    } else {
-      return this.createServer(cloneUrl, branch);
     }
   }
 
@@ -55,10 +50,6 @@ export class Workspace {
 
   public getServerRepoFolder(id: ServerId): string {
     return path.join(this.folder, id, REPO_FOLDER);
-  }
-
-  public getServerTemporaryFolder(id: ServerId): string {
-    return path.join(this.folder, id, randomUUID());
   }
 
   public getServerFile(id: ServerId): string {
@@ -99,7 +90,7 @@ export class Workspace {
     fsextra.emptyDirSync(this.folder);
   }
 
-  private createServer(cloneUrl: string, branch: string): ServerId {
+  public createServer(cloneUrl: string, branch: string): ServerId {
     const serverId = randomUUID();
     const serverFolder = path.join(this.folder, serverId);
     fs.mkdirSync(serverFolder);
@@ -109,6 +100,9 @@ export class Workspace {
       id: serverId,
       name: undefined,
       port: undefined,
+      endTimestamp: Date.now() + this.timeToLive * 60 * 1000,
+      startTimestamp: Date.now(),
+      revision: undefined,
     };
     console.log(`created ${serverFolder}`);
     const filename = path.join(serverFolder, SERVER_FILE);

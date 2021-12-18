@@ -29,7 +29,7 @@ const program = new Command()
   .option(
     '-ttl, --time-to-live <minutes>',
     'Time to keep server running after it was started.',
-    '600'
+    '30'
   )
   .option(
     '-bbsat, --bitbucket-server-access-token <token>',

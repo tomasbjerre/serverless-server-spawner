@@ -32,7 +32,7 @@ function spawnServer(
 }
 
 export async function run(settings: ServerSettings) {
-  const workspace = new Workspace(settings.workspace);
+  const workspace = new Workspace(settings.workspace, settings.timeToLive);
 
   if (settings.cleanup) {
     await workspace.killitwithfire();
@@ -46,7 +46,7 @@ export async function run(settings: ServerSettings) {
   app.get('/api/dispatch', function (req: Request, res: Response) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
-    const serverId = workspace.getOrCreate(cloneUrl, branch);
+    const serverId = workspace.createServer(cloneUrl, branch);
     spawnServer(serverId, settings, workspace);
     res.redirect(`${settings.dashboardUrl}#action=dispatch&server=${serverId}`);
   });

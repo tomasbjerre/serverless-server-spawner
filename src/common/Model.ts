@@ -16,6 +16,9 @@ export interface Server {
   cloneUrl: string;
   branch: string;
   port: number | undefined;
+  startTimestamp: number | undefined;
+  endTimestamp: number | undefined;
+  revision: string | undefined;
 }
 
 export interface Matcher {

@@ -2,6 +2,7 @@ import { v4 as uuidv4, validate } from 'uuid';
 import { Matched, Matcher } from './Model';
 import fs from 'fs';
 import path from 'path';
+const { execSync } = require('child_process');
 
 export function randomString(length = 10) {
   return (Math.random() + 1).toString(36).substring(length);
@@ -53,4 +54,13 @@ export function getMatched(
     startCommand,
     prepareCommand,
   } as Matched;
+}
+
+export function getGitRevision(folder: string): string {
+  try {
+    return execSync(`git rev-parse HEAD`, { cwd: folder }).toString().trim();
+  } catch (e) {
+    console.log(`unable to get git revision in ${folder}`);
+    throw e;
+  }
 }

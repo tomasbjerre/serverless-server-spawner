@@ -1,17 +1,14 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
-import fsextra from 'fs-extra';
 import path from 'path';
 const portastic = require('portastic');
 import { Command, Option } from 'commander';
-import { getMatched } from '../common/common';
+import { getMatched, getGitRevision } from '../common/common';
 import { Workspace } from '../common/workspace';
 import { Server } from '../common/Model';
 import { spawnProcess } from '../common/process';
-import { SIGILL } from 'constants';
 const pkgJson = require(path.join(__dirname, '..', '..', 'package.json'));
-const { execSync } = require('child_process');
 const events = require('events');
 
 const program = new Command()
@@ -41,7 +38,10 @@ program.parse(process.argv);
 
 const eventEmitter = new events.EventEmitter();
 const serverDir = path.join(program.opts().workspace, program.opts().server);
-const workspace = new Workspace(program.opts().workspace);
+const workspace = new Workspace(
+  program.opts().workspace,
+  program.opts().timeToLive
+);
 const timeToLive = parseInt(program.opts().timeToLive);
 const matchersFolder = program.opts().matchersFolder;
 const minimumPortNumber = parseInt(program.opts().minimumPortNumber);
@@ -74,15 +74,6 @@ function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
   });
 }
 
-function getGitRevision(folder: string): string {
-  try {
-    return execSync(`git rev-parse HEAD -C "${folder}"`).toString().trim();
-  } catch (e) {
-    console.log(`unable to get git revision in ${folder}`);
-    throw e;
-  }
-}
-
 async function findFreePort(min: number, max: number): Promise<number> {
   const attempts = (max - min) * 2;
   for (let i = 0; i <= attempts; i++) {
@@ -98,37 +89,26 @@ async function findFreePort(min: number, max: number): Promise<number> {
 if (program.opts().task == 'spawn') {
   const serverId = program.opts().server;
   const serverToSpawn = workspace.getServer(serverId);
-
-  const cloneFolder = workspace.getServerTemporaryFolder(serverId);
   const repoFolder = workspace.getServerRepoFolder(serverId);
-  cloneRepo(cloneFolder, serverToSpawn);
+
+  cloneRepo(repoFolder, serverToSpawn);
 
   eventEmitter.once('success', async () => {
-    const oldRevision =
-      (fs.existsSync(repoFolder) && getGitRevision(repoFolder)) ||
-      'not available';
-    const newRevision = getGitRevision(cloneFolder);
-    console.log(`New revision of ${cloneFolder} is ${newRevision}`);
-    if (oldRevision != newRevision) {
-      console.log(
-        `Old revision of ${repoFolder} was ${oldRevision}, replacing it with new code.`
-      );
-      if (fs.existsSync(repoFolder)) {
-        fsextra.removeSync(repoFolder);
-      }
-      fs.renameSync(cloneFolder, repoFolder);
-    }
+    const revision = getGitRevision(repoFolder);
+    console.log(`Revision of '${repoFolder}' is '${revision}'`);
     const matched = getMatched(matchersFolder, repoFolder);
-    const portNumber = await findFreePort(minimumPortNumber, maximumPortNumber);
-    console.log(`Using port ${portNumber}`);
-    const opts = { env: { ...process.env, PORT: portNumber } };
+
+    const serverFile = workspace.getServerFile(serverId);
+    serverToSpawn.name = matched.name;
+    serverToSpawn.revision = revision;
+    fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
 
     const prepareServerProcess = workspace.spawnServerCommand(
       serverId,
       'prepare',
       repoFolder,
       matched.prepareCommand,
-      opts
+      { env: { ...process.env } }
     );
     prepareServerProcess.on('close', () => {
       console.log(`Preparation done with '${matched.prepareCommand}'`);
@@ -136,16 +116,20 @@ if (program.opts().task == 'spawn') {
     });
 
     eventEmitter.once('success', async () => {
+      const portNumber = await findFreePort(
+        minimumPortNumber,
+        maximumPortNumber
+      );
+      console.log(`Using port ${portNumber}`);
       const spawnedServerProcess = workspace.spawnServerCommand(
         serverId,
         'run',
         repoFolder,
         matched.startCommand,
-        opts
+        { env: { ...process.env, PORT: portNumber } }
       );
 
       const serverFile = workspace.getServerFile(serverId);
-      serverToSpawn.name = matched.name;
       serverToSpawn.port = portNumber;
       fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
       console.log(

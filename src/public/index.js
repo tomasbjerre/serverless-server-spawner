@@ -13,6 +13,20 @@ function getHashParams() {
   return hashParams;
 }
 
+function formatTime(millis) {
+  var sec_num = millis / 1000;
+  var hours = Math.floor(sec_num / 3600);
+  var minutes = Math.floor((sec_num - hours * 3600) / 60);
+  var seconds = Math.round(sec_num - hours * 3600 - minutes * 60);
+  return hours + ' hours, ' + minutes + ' minutes and ' + seconds + ' seconds';
+}
+
+function percentLeft(endMillis, startMillis) {
+  var millisLeft = endMillis - Date.now();
+  var totalMillis = endMillis - startMillis;
+  return Math.round((millisLeft / totalMillis) * 100);
+}
+
 function killitwithfire() {
   $.post('/api/killitwithfire', function () {});
 }
@@ -40,12 +54,13 @@ function updateServerList() {
         `<li>
           <a href="${url}" target="_blank">${
           server.name ? server.name : server.id
-        }</a> -
+        } (${server.revision})</a> -
           <a href="/api/servers/${
             server.id
           }/state" target="_blank"><i>state</i></a>
           <button onClick="startServer('${server.id}')">Start</button>
           <button onClick="stopServer('${server.id}')">Stop</button>
+          <br/>
           Log:
           <a href="/api/servers/${
             server.id
@@ -59,6 +74,12 @@ function updateServerList() {
           <a href="/api/servers/${
             server.id
           }/log/spawn" target="_blank"><i>spawn</i></a>
+          <br/>
+          <i>${formatTime(server.endTimestamp, server.startTimestamp)}</i>
+          <b style="color: rgb(0,${Math.round(
+            (255 / 100) *
+              percentLeft(server.endTimestamp, server.startTimestamp)
+          )},0)">${percentLeft(server.endTimestamp, server.startTimestamp)}%</b>
           </li>`
       );
     }
