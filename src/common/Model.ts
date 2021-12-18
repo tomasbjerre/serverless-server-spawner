@@ -19,6 +19,7 @@ export interface Server {
   startTimestamp: number | undefined;
   endTimestamp: number | undefined;
   revision: string | undefined;
+  inactive: boolean | undefined;
 }
 
 export interface Matcher {

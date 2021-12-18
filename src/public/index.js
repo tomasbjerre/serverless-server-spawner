@@ -94,7 +94,8 @@ function checkDispatch() {
         $('#dispatch').html(`Cloning ...`);
       } else if (server.state == 'spawn') {
         $('#dispatch').html(`Spawn ...`);
-      } else if (server.state == 'stop') {
+      } else if (server.state == 'inactive') {
+        $('#loading').hide();
         $('#dispatch').html(``);
         var url = `${window.location.protocol}//${window.location.host}/#action=failed&server=${hashParams.server}`;
         window.location.href = url;
@@ -114,7 +115,7 @@ function checkLog() {
   var hashParams = getHashParams();
   if (hashParams.action == 'log') {
     $.get('api/servers/' + hashParams.server + '/state', function (server) {
-      if (server.state == 'stop') {
+      if (server.state == 'inactive') {
         var url = `${window.location.protocol}//${window.location.host}`;
         window.location.href = url;
       }
@@ -126,7 +127,7 @@ function checkLog() {
 function showLog(server) {
   ['run', 'prepare', 'clone', 'spawn'].forEach((kind) => {
     $.get(`api/servers/${server}/log/${kind}`, function (log) {
-      if (log.trim() != '') {
+      if (log.trim() != '' && log.trim() != $(`#log-${kind}`).val().trim()) {
         $(`#log-${kind}`)
           .show()
           .val(log)

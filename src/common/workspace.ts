@@ -22,16 +22,20 @@ export class Workspace {
       .map((it) => path.join(this.folder, it, SERVER_FILE))
       .filter((it) => fs.existsSync(it))
       .map((it) => fs.readFileSync(it, 'utf-8'))
-      .map((it) => JSON.parse(it) as Server);
+      .map((it) => JSON.parse(it) as Server)
+      .map((it) => {
+        it.inactive = this.getServerState(it.id) == 'inactive';
+        return it;
+      });
   }
 
-  public getServerState(id: ServerId): ServerLogFile | 'stop' {
+  public getServerState(id: ServerId): ServerLogFile | 'inactive' {
     for (let kind of ['run', 'prepare', 'clone', 'spawn'] as ServerLogFile[]) {
       if (this.getServerPid(id, kind) != -1) {
         return kind;
       }
     }
-    return 'stop';
+    return 'inactive';
   }
 
   public getServer(id: ServerId): Server {
@@ -100,6 +104,7 @@ export class Workspace {
       endTimestamp: Date.now() + this.timeToLive * 60 * 1000,
       startTimestamp: Date.now(),
       revision: undefined,
+      inactive: undefined,
     };
     console.log(`created ${serverFolder}`);
     const filename = path.join(serverFolder, SERVER_FILE);
