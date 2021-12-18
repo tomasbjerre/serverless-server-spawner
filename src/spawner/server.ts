@@ -27,7 +27,7 @@ function spawnServer(
     '--maximum-port-number',
     settings.maximumPortNumber,
   ].join(' ');
-  const command = `nodejs ${args}`;
+  const command = `node ${args}`;
   workspace.spawnServerCommand(serverId, 'spawn', __dirname, command, {});
 }
 
