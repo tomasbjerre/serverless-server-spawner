@@ -58,8 +58,8 @@ export async function run(settings: ServerSettings) {
 
   app.get('/api/servers/:id', function (req: Request, res: Response) {
     const id = req.params.id as string;
-    const servers = workspace.getServer(id);
-    res.json(servers);
+    const server = workspace.getServer(id);
+    res.json(server);
   });
 
   app.get('/api/servers/:id/state', function (req: Request, res: Response) {

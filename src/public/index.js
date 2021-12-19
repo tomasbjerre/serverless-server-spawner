@@ -51,6 +51,9 @@ function updateServerList() {
       let url = server.port
         ? 'http://' + window.location.hostname + ':' + server.port
         : '#';
+      var color = Math.round(
+        (255 / 100) * toPercent(server.endTimestamp, server.startTimestamp)
+      );
       $('#servers').append(
         `<li>
           <a href="${url}" target="_blank">${
@@ -64,9 +67,10 @@ function updateServerList() {
           <a href="/#action=log&server=${server.id}">log</a>
           <br/>
           <i>${formatTime(server.endTimestamp - Date.now())}</i>
-          <b style="color: rgb(0,${Math.round(
-            (255 / 100) * toPercent(server.endTimestamp, server.startTimestamp)
-          )},0)">${toPercent(server.endTimestamp, server.startTimestamp)}%</b>
+          <b style="color: rgb(${255 - color},${color},0)">${toPercent(
+          server.endTimestamp,
+          server.startTimestamp
+        )}%</b>
           </li>`
       );
     }
@@ -74,9 +78,9 @@ function updateServerList() {
 }
 
 function checkDispatch() {
-  $('#dispatch').html(`Waiting for server to start...`);
   var hashParams = getHashParams();
   if (hashParams.action == 'dispatch') {
+    $('#dispatch').html(`Waiting for server to start...`);
     $('#loading').show();
     showLog(hashParams.server);
     $.get('api/servers/' + hashParams.server + '/state', function (server) {
