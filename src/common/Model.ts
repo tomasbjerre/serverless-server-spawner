@@ -29,9 +29,13 @@ export interface Matcher {
   isMatching(repoFolder: string): boolean;
 }
 
+export interface CloneUrlCategoryItem {
+  key: string;
+  name: string;
+}
 export interface CloneUrlCategory {
-  category1: string;
-  category2: string;
+  category1: CloneUrlCategoryItem;
+  category2: CloneUrlCategoryItem;
 }
 
 export interface CloneUrl {

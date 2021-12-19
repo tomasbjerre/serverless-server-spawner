@@ -94,33 +94,41 @@ export async function run(settings: ServerSettings) {
     getLog('spawn', req, res);
   });
 
-  function getCachedOrFetch(key: string, getter: () => any): any {
+  async function getCachedOrFetch(
+    key: string,
+    getter: () => any
+  ): Promise<any> {
     if (!cache.has(key)) {
-      const val = getter();
+      const val = await getter();
       cache.set(key, val);
     }
     return cache.get(key);
   }
 
-  app.get('/api/cloneurlcategories', function (req: Request, res: Response) {
-    const cloneUrls = getCachedOrFetch('cloneurls', () =>
-      GitService.from(settings.gitService).getCloneUrlCategories()
-    );
-    res.json(cloneUrls);
-  });
+  app.get(
+    '/api/cloneurlcategories',
+    async function (req: Request, res: Response) {
+      const cloneUrls = await getCachedOrFetch(
+        'cloneurls',
+        async () =>
+          await GitService.from(settings.gitService).getCloneUrlCategories()
+      );
+      res.json(cloneUrls);
+    }
+  );
 
   app.get(
     '/api/cloneurlcategories/:category1/:category2/branches',
-    function (req: Request, res: Response) {
+    async function (req: Request, res: Response) {
       const category1 = req.params.category1;
       const category2 = req.params.category2;
-      const branches = getCachedOrFetch(
+      const branches = await getCachedOrFetch(
         `branches-${category1}-${category2}`,
-        () =>
-          GitService.from(settings.gitService).getCloneUrls({
+        async () =>
+          await GitService.from(settings.gitService).getCloneUrls(
             category1,
-            category2,
-          })
+            category2
+          )
       );
       res.json(branches);
     }

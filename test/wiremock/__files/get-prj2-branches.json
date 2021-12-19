@@ -1,0 +1,16 @@
+{
+  "size": 5,
+  "limit": 25,
+  "isLastPage": true,
+  "values": [
+    {
+      "id": "refs/heads/develop",
+      "displayId": "develop",
+      "type": "BRANCH",
+      "latestCommit": "abc",
+      "latestChangeset": "def",
+      "isDefault": true
+    }
+  ],
+  "start": 0
+}

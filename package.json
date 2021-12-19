@@ -4,15 +4,16 @@
   "scripts": {
     "build": "rm -rf lib && npm run format && mkdir lib && cp -rv src/public lib/public && tsc -p .",
     "format": "prettier --write .",
-    "release": "npm run build && npm version patch && npm publish && git push --follow-tags"
+    "release": "npm run build && npm version patch && npm publish && git push --follow-tags",
+    "mock": "npx wiremock --root-dir test/wiremock --port 8081"
   },
   "bin": "./lib/spawner/bin.js",
   "dependencies": {
     "axios": "^0.24.0",
-    "fs-extra": "^10.0.0",
     "commander": "^8.3.0",
     "express": "^4.17.1",
     "figlet": "^1.5.2",
+    "fs-extra": "^10.0.0",
     "node-cache": "^5.1.2",
     "path": "^0.12.7",
     "portastic": "^1.0.1",
@@ -27,7 +28,8 @@
     "@types/uuid": "^8.3.3",
     "prettier": "^2.0.5",
     "ts-node": "^8.9.0",
-    "typescript": "^4.5.4"
+    "typescript": "^4.5.4",
+    "wiremock": "^2.32.0"
   },
   "homepage": "https://github.com/tomasbjerre/serverless-server-spawner",
   "repository": "git@github.com:tomasbjerre/serverless-server-spawner.git",

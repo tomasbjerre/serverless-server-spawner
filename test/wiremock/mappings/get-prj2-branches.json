@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/projects/PRJ2/repos/my-repo/branches"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "get-prj2-branches.json"
+  }
+}

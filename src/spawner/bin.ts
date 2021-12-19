@@ -41,7 +41,7 @@ const program = new Command()
   )
   .option(
     '-bbsp, --bitbucket-server-projects <projects>',
-    'Bitbucket Server projects',
+    'Bitbucket Server projects. Empty will include all projects.',
     commaSeparatedList
   )
   .option(
@@ -75,11 +75,11 @@ const cacheTtl = program.opts().cacheTtl;
 const minimumPortNumber = program.opts().minimumPortNumber;
 const maximumPortNumber = program.opts().maximumPortNumber;
 const cleanup = program.opts().cleanup;
-const bitbucketServer = bitbucketServerAccessToken
+const bitbucketServer = bitbucketServerUrl
   ? ({
       url: bitbucketServerUrl,
       personalAccessToken: bitbucketServerAccessToken,
-      projects: bitbucketServerProjects,
+      projects: bitbucketServerProjects || [],
     } as BitbucketServer)
   : undefined;
 console.log(`

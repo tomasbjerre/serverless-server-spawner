@@ -1,4 +1,4 @@
-HEARTBEAT = 1000;
+var HEARTBEAT = 1000;
 
 function getHashParams() {
   var hashParams = {};
@@ -137,6 +137,62 @@ function showLog(server) {
   });
 }
 
+function setupCategories() {
+  $.get('/api/cloneurlcategories', function (data) {
+    if (data.length > 0) {
+      $('#repositories > select').empty();
+      $('#repositories > select').append(`
+        <option value="">Välj</option>
+      `);
+      $('#categories').show();
+    }
+    data.forEach((category) => {
+      $('#repositories > select').append(`
+      <option value="${encodeURIComponent(JSON.stringify(category))}">${
+        category.category1.name
+      } / ${category.category2.name}</option>
+      `);
+    });
+  });
+}
+
+function repositorySelected() {
+  var valueJson = $('#repositories > select').val();
+  if (valueJson == '') {
+    return;
+  }
+  var value = JSON.parse(decodeURIComponent(valueJson));
+  $.get(
+    `/api/cloneurlcategories/${value.category1.key}/${value.category2.key}/branches`,
+    function (data) {
+      if (data.length > 0) {
+        $('#branches > select').empty();
+        $('#branches > select').append(`
+        <option value="">Välj</option>
+      `);
+        $('#branches').show();
+      }
+      data.forEach((category) => {
+        $('#branches > select').append(`
+      <option value="${encodeURIComponent(JSON.stringify(category))}">${
+          category.cloneUrl
+        } / ${category.branch}</option>
+      `);
+      });
+    }
+  );
+}
+
+function branchSelected(valueJson) {
+  var valueJson = $('#branches > select').val();
+  if (valueJson == '') {
+    return;
+  }
+  var value = JSON.parse(decodeURIComponent(valueJson));
+  var url = `${window.location.protocol}//${window.location.host}/api/dispatch?cloneurl=${value.cloneUrl}&branch=${value.branch}`;
+  window.location.href = url;
+}
+
 function pulse() {
   checkDispatch();
   checkStartupFailed();
@@ -144,6 +200,7 @@ function pulse() {
   updateServerList();
 }
 $(document).ready(function () {
+  setupCategories();
   pulse();
   var intervalId = setInterval(function () {
     pulse();

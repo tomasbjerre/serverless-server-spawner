@@ -11,6 +11,16 @@
       <button onclick="clearcache()">clearcache</button>
       <button onclick="killitwithfire()">killitwithfire</button>
     </div>
+    <div id="categories" style="display: none">
+      <label id="repositories"
+        >Repositories:
+        <select onChange="repositorySelected()"></select>
+      </label>
+      <label id="branches"
+        >Branches:
+        <select onChange="branchSelected()"></select>
+      </label>
+    </div>
     <div>
       <textarea
         id="log-run"

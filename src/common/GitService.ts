@@ -3,6 +3,7 @@ import {
   CloneUrlCategory,
   GitServices,
   BitbucketServer,
+  CloneUrlCategoryItem,
 } from './Model';
 import axios, { AxiosRequestConfig } from 'axios';
 export abstract class GitService {
@@ -10,44 +11,87 @@ export abstract class GitService {
     if (gitService.bitbucketServer) {
       return new BitbucketService(gitService.bitbucketServer);
     }
-    throw `No git service`;
+    return new EmptyService();
   }
   public abstract getCloneUrlCategories(): Promise<CloneUrlCategory[]>;
-  public abstract getCloneUrls(category: CloneUrlCategory): Promise<CloneUrl[]>;
+  public abstract getCloneUrls(
+    category1: string,
+    category2: string
+  ): Promise<CloneUrl[]>;
+}
+
+class EmptyService extends GitService {
+  public getCloneUrlCategories(): Promise<CloneUrlCategory[]> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve([]);
+      }, 0);
+    });
+  }
+  public getCloneUrls(
+    category1: string,
+    category2: string
+  ): Promise<CloneUrl[]> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve([]);
+      }, 0);
+    });
+  }
 }
 
 class BitbucketService extends GitService {
   private config: AxiosRequestConfig;
+
   constructor(private settings: BitbucketServer) {
     super();
-    this.config = {
-      headers: {
-        Authorization: `Bearer ${settings.personalAccessToken}`,
-      },
-    };
+    this.config = settings.personalAccessToken
+      ? {
+          headers: {
+            Authorization: `Bearer ${settings.personalAccessToken}`,
+          },
+        }
+      : {};
+  }
+
+  async getProjects(projectKeys: string[]): Promise<CloneUrlCategoryItem[]> {
+    const reposUrl = `${this.settings.url}/projects`;
+    const response = await axios.get(reposUrl, this.config);
+    return response.data.values
+      .filter(
+        (it: any) =>
+          projectKeys.length == 0 || projectKeys.indexOf(it.key) != -1
+      )
+      .map((it: any) => {
+        return { key: it.key, name: it.name } as CloneUrlCategoryItem;
+      });
   }
 
   async getCloneUrlCategories(): Promise<CloneUrlCategory[]> {
     const categories = [];
-    for (let project of this.settings.projects) {
-      const reposUrl = `${this.settings.url}/projects/${project}/repos`;
+    const projects = await this.getProjects(this.settings.projects);
+    for (let project of projects) {
+      const reposUrl = `${this.settings.url}/projects/${project.key}/repos`;
       const response = await axios.get(reposUrl, this.config);
       categories.push(
-        ...response.data.map((it: any) => {
+        response.data.values.map((it: any) => {
           return {
             category1: project,
-            category2: it.slug,
+            category2: { key: it.slug, name: it.name },
           } as CloneUrlCategory;
         })
       );
     }
-    return categories;
+    return categories.flat();
   }
 
-  async getCloneUrls(category: CloneUrlCategory): Promise<CloneUrl[]> {
-    const repoUrl = `${this.settings.url}/projects/${category.category1}/repos/${category.category2}`;
+  async getCloneUrls(
+    category1: string,
+    category2: string
+  ): Promise<CloneUrl[]> {
+    const repoUrl = `${this.settings.url}/projects/${category1}/repos/${category2}`;
     const repoResponse = await axios.get(repoUrl, this.config);
-    const repoBranchUrl = `${this.settings.url}/projects/${category.category1}/repos/${category.category2}/branches`;
+    const repoBranchUrl = `${this.settings.url}/projects/${category1}/repos/${category2}/branches`;
     const repoBranchResponse = await axios.get(repoBranchUrl, this.config);
     return repoBranchResponse.data.values.map((branch: any) => {
       return {
