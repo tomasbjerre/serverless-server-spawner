@@ -36,6 +36,12 @@ function toPercent(endMillis, startMillis) {
   return 0;
 }
 
+function getDispatchLink(cloneUrl, branch) {
+  return `${window.location.protocol}//${
+    window.location.host
+  }/api/dispatch?cloneurl=${encodeURI(cloneUrl)}&branch=${branch}`;
+}
+
 function stopServer(serverId) {
   $.post('/api/servers/' + serverId + '/stop', function () {});
 }
@@ -59,25 +65,33 @@ function updateServerList() {
         (255 / 100) * toPercent(server.endTimestamp, server.startTimestamp)
       );
       $('#servers').append(
-        `<li>
+        `<hr/>
           <a href="${url}" target="_blank">${
           server.name ? server.name : server.id
-        } (${server.branch} ${server.revision})</a> -
-          <a href="/api/servers/${
-            server.id
-          }/state" target="_blank"><i>state</i></a>
-          <button onclick="stopServer('${server.id}')">Stop</button>
+        } (${server.branch} ${server.revision})</a>
+        <a href="/api/servers/${
+          server.id
+        }/state" target="_blank"><i>state</i></a>
           <br/>
-          Log:
-          <a href="/#action=log&server=${server.id}">log</a> Time left:
+          Log:          <a href="/#action=log&server=${server.id}">log</a>
+          <br/>
+          Time left:
           <i>${formatTime(server.endTimestamp - Date.now())}</i>
           <b style="color: rgb(${255 - color},${color},0)">${toPercent(
           server.endTimestamp,
           server.startTimestamp
         )}%</b>
-          </li>`
+        <br/>
+        Dispatch link: <a href="${getDispatchLink(
+          server.cloneUrl,
+          server.branch
+        )}">here</a>
+        <br/>
+        <button onclick="stopServer('${server.id}')">Stop</button>
+`
       );
     }
+    $('#servers').append(`<hr/>`);
   });
 }
 
@@ -197,7 +211,7 @@ function branchSelected(valueJson) {
     return;
   }
   var value = JSON.parse(decodeURIComponent(valueJson));
-  var url = `${window.location.protocol}//${window.location.host}/api/dispatch?cloneurl=${value.cloneUrl}&branch=${value.branch}`;
+  var url = getDispatchLink(value.cloneUrl, value.branch);
   window.location.href = url;
 }
 
