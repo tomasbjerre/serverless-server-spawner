@@ -126,5 +126,5 @@ POST /api/clearcache
 Stop all servers and cleanup workspace.
 
 ```
-POST /api/killitwithfire
+POST /api/stopandremoveallservers
 ```

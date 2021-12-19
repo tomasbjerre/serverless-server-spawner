@@ -36,8 +36,12 @@ function toPercent(endMillis, startMillis) {
   return 0;
 }
 
-function killitwithfire() {
-  $.post('/api/killitwithfire', function () {});
+function stopServer(serverId) {
+  $.post('/api/servers/' + serverId + '/stop', function () {});
+}
+
+function stopandremoveallservers() {
+  $.post('/api/stopandremoveallservers', function () {});
 }
 
 function clearcache() {
@@ -62,10 +66,10 @@ function updateServerList() {
           <a href="/api/servers/${
             server.id
           }/state" target="_blank"><i>state</i></a>
+          <button onclick="stopServer('${server.id}')">Stop</button>
           <br/>
           Log:
-          <a href="/#action=log&server=${server.id}">log</a>
-          <br/>
+          <a href="/#action=log&server=${server.id}">log</a> Time left:
           <i>${formatTime(server.endTimestamp - Date.now())}</i>
           <b style="color: rgb(${255 - color},${color},0)">${toPercent(
           server.endTimestamp,

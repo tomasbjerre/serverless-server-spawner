@@ -35,7 +35,7 @@ export async function run(settings: ServerSettings) {
   const workspace = new Workspace(settings.workspace, settings.timeToLive);
 
   if (settings.cleanup) {
-    await workspace.killitwithfire();
+    await workspace.stopandremoveallservers();
   }
 
   const cache = new NodeCache({
@@ -60,6 +60,12 @@ export async function run(settings: ServerSettings) {
     const id = req.params.id as string;
     const server = workspace.getServer(id);
     res.json(server);
+  });
+
+  app.post('/api/servers/:id/stop', function (req: Request, res: Response) {
+    const id = req.params.id as ServerId;
+    workspace.stopAndRemove(id);
+    res.json({});
   });
 
   app.get('/api/servers/:id/state', function (req: Request, res: Response) {
@@ -139,10 +145,13 @@ export async function run(settings: ServerSettings) {
     res.json({});
   });
 
-  app.post('/api/killitwithfire', async function (req: Request, res: Response) {
-    await workspace.killitwithfire();
-    res.json({});
-  });
+  app.post(
+    '/api/stopandremoveallservers',
+    async function (req: Request, res: Response) {
+      await workspace.stopandremoveallservers();
+      res.json({});
+    }
+  );
 
   app.use(express.static(path.join(__dirname, '..', '..', 'lib', 'public')));
   app.get('*', (req: Request, res: Response) => {

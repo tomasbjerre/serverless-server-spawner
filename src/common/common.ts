@@ -4,10 +4,6 @@ import fs from 'fs';
 import path from 'path';
 const { execSync } = require('child_process');
 
-export function randomString(length = 10) {
-  return (Math.random() + 1).toString(36).substring(length);
-}
-
 export function randomUUID() {
   return uuidv4();
 }
