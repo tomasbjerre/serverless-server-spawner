@@ -4,19 +4,28 @@
 
 Basic idea:
 
-- Start a server with `npx serverless-server-spawner`.
-- Invoke the server with `https://serverless/?cloneurl=X&branch=Y`
-- Server will
-  - Clone that repo and checkout that branch
-  - Detect what was cloned and starta a server
+- Start it with `npx serverless-server-spawner`.
+- Invoke it with `https://localhost:P/?cloneurl=C&branch=B`
+  - `P` - A configurable port.
+  - `C` - A clone URL of a git Repo.
+  - `B` - A branch in repo `C`.
+- It will
+  - Clone that repo.
+  - Checkout that branch.
+  - Recognize what was cloned.
+  - Find a free port
+  - Spawn a server
+  - Wait for the spawned server to start
+  - Redirect to the spawned server
   - Keep that server alive for configurable amount of time
 
-Detection is done with configurable matchers. A matcher:
+Repositories are recognized using configurable matchers. A matcher:
 
 - Determines a fitting name
+- How to preparare the repository before start
 - How to start the server
 
-As the servers are spawned it will keep track of all processes. Provides an API as well as a nice dashboard showing status of the setup.
+As the servers are spawned it will keep track of all processes. Provides an API as well as a dashboard showing status of the setup.
 
 ## Use cases
 
