@@ -22,20 +22,16 @@ export class Workspace {
       .map((it) => path.join(this.folder, it, SERVER_FILE))
       .filter((it) => fs.existsSync(it))
       .map((it) => fs.readFileSync(it, 'utf-8'))
-      .map((it) => JSON.parse(it) as Server)
-      .map((it) => {
-        it.inactive = this.getServerState(it.id) == 'inactive';
-        return it;
-      });
+      .map((it) => JSON.parse(it) as Server);
   }
 
-  public getServerState(id: ServerId): ServerLogFile | 'inactive' {
+  public getServerState(id: ServerId): ServerLogFile | 'nopid' {
     for (let kind of ['run', 'prepare', 'clone', 'spawn'] as ServerLogFile[]) {
       if (this.getServerPid(id, kind) != -1) {
         return kind;
       }
     }
-    return 'inactive';
+    return 'nopid';
   }
 
   public getServer(id: ServerId): Server {
@@ -131,6 +127,7 @@ export class Workspace {
     }
     console.log(`Emptying ${this.folder} ...`);
     fsextra.emptyDirSync(this.folder);
+    console.log(`Emptying done`);
   }
 
   public spawnServerCommand(

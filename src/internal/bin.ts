@@ -93,6 +93,14 @@ if (program.opts().task == 'spawn') {
 
   cloneRepo(repoFolder, serverToSpawn);
 
+  setTimeout(() => {
+    console.log(
+      `Killing spawned server ${process.pid} after ${timeToLive} minutes`
+    );
+    workspace.removeServer(serverId);
+    process.exit();
+  }, timeToLive * 60 * 1000);
+
   eventEmitter.once('success', async () => {
     const revision = getGitRevision(repoFolder);
     console.log(`Revision of '${repoFolder}' is '${revision}'`);
@@ -114,6 +122,12 @@ if (program.opts().task == 'spawn') {
       console.log(`Preparation done with '${matched.prepareCommand}'`);
       eventEmitter.emit('success');
     });
+    prepareServerProcess.on('error', function (err: any) {
+      console.log(`Error with ${matched.prepareCommand} in ${repoFolder}`, err);
+      const serverFile = workspace.getServerFile(serverId);
+      serverToSpawn.inactive = true;
+      fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
+    });
 
     eventEmitter.once('success', async () => {
       const portNumber = await findFreePort(
@@ -121,27 +135,29 @@ if (program.opts().task == 'spawn') {
         maximumPortNumber
       );
       console.log(`Using port ${portNumber}`);
+      const env = { ...process.env, PORT: portNumber, HTTP_PORT: portNumber };
+      matched.preStart(repoFolder, env);
       const spawnedServerProcess = workspace.spawnServerCommand(
         serverId,
         'run',
         repoFolder,
         matched.startCommand,
-        { env: { ...process.env, PORT: portNumber } }
+        { env }
       );
+      spawnedServerProcess.on('error', function (err: any) {
+        console.log(`Error with ${matched.startCommand} in ${repoFolder}`, err);
+        const serverFile = workspace.getServerFile(serverId);
+        serverToSpawn.inactive = true;
+        fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
+      });
 
       const serverFile = workspace.getServerFile(serverId);
       serverToSpawn.port = portNumber;
       fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
+
       console.log(
-        `Will kill '${serverToSpawn.name}' with pid ${spawnedServerProcess.pid} after ${timeToLive} minutes`
+        `Will kill '${serverToSpawn.name}' with pid ${process.pid} after ${timeToLive} minutes`
       );
-      setTimeout(() => {
-        console.log(
-          `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
-        );
-        workspace.removeServer(serverId);
-        process.exit();
-      }, timeToLive * 60 * 1000);
     });
   });
 }

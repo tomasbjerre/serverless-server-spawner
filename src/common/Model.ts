@@ -8,6 +8,7 @@ export interface Matched {
   name: string;
   startCommand: string;
   prepareCommand: string;
+  preStart: (repoFolder: string, env: any) => void;
 }
 
 export interface Server {
@@ -27,6 +28,7 @@ export interface Matcher {
   getPrepareCommand(repoFolder: string): string;
   getStartCommand(repoFolder: string): string;
   isMatching(repoFolder: string): boolean;
+  preStart: (repoFolder: string, env: any) => void;
 }
 
 export interface CloneUrlCategoryItem {

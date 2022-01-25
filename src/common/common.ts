@@ -49,6 +49,7 @@ export function getMatched(
     name,
     startCommand,
     prepareCommand,
+    preStart: matcher.preStart,
   } as Matched;
 }
 

@@ -51,6 +51,14 @@ export async function run(settings: ServerSettings) {
     res.redirect(`${settings.dashboardUrl}#action=dispatch&server=${serverId}`);
   });
 
+  app.get('/api/settings', function (req: Request, res: Response) {
+    const safeSettings = JSON.parse(JSON.stringify(settings)) as ServerSettings;
+    if (safeSettings.gitService.bitbucketServer) {
+      safeSettings.gitService.bitbucketServer.personalAccessToken = '<masked>';
+    }
+    res.json(safeSettings);
+  });
+
   app.get('/api/servers', function (req: Request, res: Response) {
     const servers = workspace.getServers();
     res.json(servers);
