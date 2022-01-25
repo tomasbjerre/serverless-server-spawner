@@ -11,6 +11,14 @@ export interface Matched {
   preStart: (repoFolder: string, env: any) => void;
 }
 
+export interface Matcher {
+  getName(repoFolder: string): string;
+  getPrepareCommand(repoFolder: string): string;
+  getStartCommand(repoFolder: string): string;
+  isMatching(repoFolder: string): boolean;
+  preStart: (repoFolder: string, env: any) => void;
+}
+
 export interface Server {
   name: string | undefined;
   id: ServerId;
@@ -21,14 +29,6 @@ export interface Server {
   endTimestamp: number | undefined;
   revision: string | undefined;
   inactive: boolean | undefined;
-}
-
-export interface Matcher {
-  getName(repoFolder: string): string;
-  getPrepareCommand(repoFolder: string): string;
-  getStartCommand(repoFolder: string): string;
-  isMatching(repoFolder: string): boolean;
-  preStart: (repoFolder: string, env: any) => void;
 }
 
 export interface CloneUrlCategoryItem {
