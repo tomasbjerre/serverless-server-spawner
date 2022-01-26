@@ -22,7 +22,7 @@ Basic idea:
 Repositories are recognized using configurable matchers. A matcher:
 
 - Determines a fitting name
-- How to preparare the repository before start
+- How to prepare the repository before start
 - How to start the server
 
 As the servers are spawned it will keep track of all processes. Provides an API as well as a dashboard showing status of the setup.
