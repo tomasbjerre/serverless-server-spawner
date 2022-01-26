@@ -1,10 +1,11 @@
 @startuml
 actor User
 
+title A user browses to the dispatch URL and spawns a new server.
 
 User -> SSS: Browse to Dispatch URL
 activate SSS
-note right: GET: /api/dispatch?cloneurl=X&branch=Y
+note over SSS: GET: /api/dispatch?cloneurl=X&branch=Y
 SSS -> Workspace: Store
 activate Workspace
 Workspace --> SSS
@@ -16,8 +17,8 @@ deactivate SSS
 User -> Dashboard
 activate Dashboard
 Dashboard -> SSS: Check state of server
+note over SSS: GET: /api/server/:server/state
 activate SSS
-note right: GET: /api/server/:server/state
 SSS -> Workspace
 Workspace --> SSS
 SSS --> Dashboard: state
@@ -43,9 +44,9 @@ Spawner -> Workspace: Invoke pre-start code
 Spawner -> Workspace: Invoke start command
 
 Dashboard --> User: Redirect to Server
+deactivate Dashboard
 User -> Server
 activate Server
-deactivate Dashboard
 
 ... wait configured time to live ...
 
