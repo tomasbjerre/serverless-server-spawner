@@ -103,6 +103,12 @@ GET /api/servers/:id
 GET /api/servers/:id/state
 ```
 
+Stop, and cleanup, the server.
+
+```
+GET /api/servers/:id/stop
+```
+
 ```
 GET /api/servers/:id/log/spawn
 ```
