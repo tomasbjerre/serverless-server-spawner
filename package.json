@@ -1,6 +1,6 @@
 {
   "name": "serverless-server-spawner",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "scripts": {
     "build": "rm -rf lib && npm run format && mkdir lib && cp -rv src/public lib/public && tsc -p .",
     "format": "prettier --write .",
