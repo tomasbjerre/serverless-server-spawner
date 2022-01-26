@@ -71,7 +71,7 @@ function getStartCommand(repoFolder) {
   return `npm run start`;
 }
 
-module.exports = { getName, getStartCommand, isMatching, preStart };
+module.exports = { getName, getStartCommand, isMatching, getPrepareCommand, preStart };
 ```
 
 And you point at them with:
@@ -106,7 +106,7 @@ GET /api/servers/:id/state
 Stop, and cleanup, the server.
 
 ```
-GET /api/servers/:id/stop
+POST /api/servers/:id/stop
 ```
 
 ```
