@@ -22,7 +22,7 @@ const program = new Command()
   .option('-mf, --matchers-folder <folder>', 'Folder containing matchers.')
   .option('-p, --port <number>', 'Server port to use', '8080')
   .option(
-    '-d, --dashboardUrl <url>',
+    '-d, --dashboard-url <url>',
     'Base URL of dashboard',
     'http://localhost:8080'
   )

@@ -15,6 +15,7 @@ SSS --> User: Redirect to dashboard url
 deactivate SSS
 
 User -> Dashboard
+note over Dashboard: GET: dashboard-url/#?server=:server
 activate Dashboard
 Dashboard -> SSS: Check state of server
 note over SSS: GET: /api/server/:server/state
