@@ -27,6 +27,8 @@ Repositories are recognized using configurable matchers. A matcher:
 
 As the servers are spawned it will keep track of all processes. Provides an API as well as a dashboard showing status of the setup.
 
+![A simple flow](/flow.png)
+
 ## Use cases
 
 - Can be used to test feature-branches. Adding links from pull-requests to this server and let this server spawn servers running those features.
@@ -71,7 +73,13 @@ function getStartCommand(repoFolder) {
   return `npm run start`;
 }
 
-module.exports = { getName, getStartCommand, isMatching, getPrepareCommand, preStart };
+module.exports = {
+  isMatching,
+  getName,
+  getPrepareCommand,
+  preStart,
+  getStartCommand,
+};
 ```
 
 And you point at them with:

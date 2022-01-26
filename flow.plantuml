@@ -1,0 +1,58 @@
+@startuml
+actor User
+
+
+User -> SSS: Browse to Dispatch URL
+activate SSS
+note right: GET: /api/dispatch?cloneurl=X&branch=Y
+SSS -> Workspace: Store
+activate Workspace
+Workspace --> SSS
+SSS -> Spawner
+activate Spawner
+SSS --> User: Redirect to dashboard url
+deactivate SSS
+
+User -> Dashboard
+activate Dashboard
+Dashboard -> SSS: Check state of server
+note right: GET: /api/server/:server/state
+activate SSS
+SSS -> Workspace
+Workspace --> SSS
+SSS --> Dashboard: state
+deactivate SSS
+
+... continue to check state of server and provide feedback to User ...
+
+Spawner -> Workspace: Clone repo and checkout branch
+Spawner -> Matcher1: isMatching
+activate Matcher1
+Matcher1 --> Spawner: No
+deactivate Matcher1
+
+... continue to check configured matchers ...
+
+Spawner -> MatcherX: isMatching
+activate MatcherX
+MatcherX --> Spawner: Yes
+deactivate MatcherX
+Spawner -> Workspace: Determine name
+Spawner -> Workspace: Invoke prepare command
+Spawner -> Workspace: Invoke pre-start code
+Spawner -> Workspace: Invoke start command
+
+Dashboard --> User: Redirect to Server
+User -> Server
+activate Server
+deactivate Dashboard
+
+... wait configured time to live ...
+
+Spawner -> Workspace: Cleanup
+deactivate Workspace
+Spawner -> Server: Close
+deactivate Server
+Spawner -> Spawner: Close
+deactivate Spawner
+@enduml
