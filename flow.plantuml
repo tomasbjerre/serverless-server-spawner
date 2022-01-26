@@ -16,8 +16,8 @@ deactivate SSS
 User -> Dashboard
 activate Dashboard
 Dashboard -> SSS: Check state of server
-note right: GET: /api/server/:server/state
 activate SSS
+note right: GET: /api/server/:server/state
 SSS -> Workspace
 Workspace --> SSS
 SSS --> Dashboard: state
@@ -49,10 +49,10 @@ deactivate Dashboard
 
 ... wait configured time to live ...
 
-Spawner -> Workspace: Cleanup
-deactivate Workspace
 Spawner -> Server: Close
 deactivate Server
+Spawner -> Workspace: Cleanup
+deactivate Workspace
 Spawner -> Spawner: Close
 deactivate Spawner
 @enduml
