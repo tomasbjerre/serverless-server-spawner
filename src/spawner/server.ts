@@ -38,15 +38,35 @@ export async function run(settings: ServerSettings) {
     await workspace.stopandremoveallservers();
   }
 
-  const cache = new NodeCache({
-    stdTTL: settings.cacheTtl * 60,
+  const integrationCache = new NodeCache({
+    stdTTL: settings.integrationCacheTtl * 60,
   });
-  const app = express();
 
+  const shortCache = new NodeCache({
+    stdTTL: 2,
+  });
+
+  async function getCachedOrFetch(
+    cache: NodeCache,
+    key: string,
+    getter: () => any
+  ): Promise<any> {
+    if (!cache.has(key)) {
+      const val = await getter();
+      cache.set(key, val);
+    }
+    return cache.get(key);
+  }
+
+  const app = express();
   app.get('/api/dispatch', function (req: Request, res: Response) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
-    const serverId = workspace.createServer(cloneUrl, branch);
+    const serverId = workspace.findOrCreateServer(
+      cloneUrl,
+      branch,
+      settings.minimumSecondsBetweenDispatch
+    );
     spawnServer(serverId, settings, workspace);
     res.redirect(`${settings.dashboardUrl}#action=dispatch&server=${serverId}`);
   });
@@ -59,14 +79,18 @@ export async function run(settings: ServerSettings) {
     res.json(safeSettings);
   });
 
-  app.get('/api/servers', function (req: Request, res: Response) {
-    const servers = workspace.getServers();
+  app.get('/api/servers', async function (req: Request, res: Response) {
+    const servers = await getCachedOrFetch(shortCache, `servers`, () =>
+      workspace.getServers()
+    );
     res.json(servers);
   });
 
-  app.get('/api/servers/:id', function (req: Request, res: Response) {
+  app.get('/api/servers/:id', async function (req: Request, res: Response) {
     const id = req.params.id as string;
-    const server = workspace.getServer(id);
+    const server = await getCachedOrFetch(shortCache, `server-${id}`, () =>
+      workspace.getServer(id)
+    );
     res.json(server);
   });
 
@@ -76,15 +100,30 @@ export async function run(settings: ServerSettings) {
     res.json({});
   });
 
-  app.get('/api/servers/:id/state', function (req: Request, res: Response) {
-    const id = req.params.id as ServerId;
-    const serverState = workspace.getServerState(id);
-    res.json({ state: serverState });
-  });
+  app.get(
+    '/api/servers/:id/state',
+    async function (req: Request, res: Response) {
+      const id = req.params.id as ServerId;
+      const serverState = await getCachedOrFetch(
+        shortCache,
+        `server-state-${id}`,
+        () => workspace.getServerState(id)
+      );
+      res.json({ state: serverState });
+    }
+  );
 
-  function getLog(log: ServerLogFile, req: Request, res: Response): void {
+  async function getLog(
+    log: ServerLogFile,
+    req: Request,
+    res: Response
+  ): Promise<void> {
     const id = req.params.id as ServerId;
-    const logContent = workspace.getServerLog(id, log);
+    const logContent = await getCachedOrFetch(
+      shortCache,
+      `server-log-${id}-${log}`,
+      () => workspace.getServerLog(id, log)
+    );
     res.setHeader('content-type', 'text/plain');
     res.send(logContent);
   }
@@ -108,21 +147,11 @@ export async function run(settings: ServerSettings) {
     getLog('spawn', req, res);
   });
 
-  async function getCachedOrFetch(
-    key: string,
-    getter: () => any
-  ): Promise<any> {
-    if (!cache.has(key)) {
-      const val = await getter();
-      cache.set(key, val);
-    }
-    return cache.get(key);
-  }
-
   app.get(
     '/api/cloneurlcategories',
     async function (req: Request, res: Response) {
       const cloneUrls = await getCachedOrFetch(
+        integrationCache,
         'cloneurls',
         async () =>
           await GitService.from(settings.gitService).getCloneUrlCategories()
@@ -137,6 +166,7 @@ export async function run(settings: ServerSettings) {
       const category1 = req.params.category1;
       const category2 = req.params.category2;
       const branches = await getCachedOrFetch(
+        integrationCache,
         `branches-${category1}-${category2}`,
         async () =>
           await GitService.from(settings.gitService).getCloneUrls(
@@ -149,7 +179,7 @@ export async function run(settings: ServerSettings) {
   );
 
   app.post('/api/clearcache', function (req: Request, res: Response) {
-    cache.flushAll();
+    integrationCache.flushAll();
     res.json({});
   });
 

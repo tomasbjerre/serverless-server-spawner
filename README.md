@@ -95,20 +95,21 @@ npx serverless-server-spawner \
 Usage: npx serverless-server-spawner [options]
 
 Options:
-  -V, --version                                    output the version number
-  -ws, --workspace <folder>                        Filesystem to work with.
-  -mf, --matchers-folder <folder>                  Folder containing matchers.
-  -p, --port <number>                              Server port to use (default: "8080")
-  -d, --dashboard-url <url>                        Base URL of dashboard (default: "http://localhost:8080")
-  -ttl, --time-to-live <minutes>                   Time to keep server running after it was started. (default: "30")
-  -bbsat, --bitbucket-server-access-token <token>  Bitbucket Server access token
-  -bbsu, --bitbucket-server-url <url>              Bitbucket Server base URL to use for REST integration
-  -bbsp, --bitbucket-server-projects <projects>    Bitbucket Server projects. Empty will include all projects.
-  -mip, --minimum-port-number <port>               Minimum port number to use for spawned servers (default: "9000")
-  -map, --maximum-port-number <port>               Maximum port number to use for spawned servers (default: "9999")
-  -ct, --cache-ttl <minutes>                       Cache time to live, seconds (default: "120")
-  -nc, --no-cleanup                                Do not cleanup state on startup: kill servers and clean workspace
-  -h, --help                                       display help for command
+  -V, --version                                        output the version number
+  -ws, --workspace <folder>                            Filesystem to work with.
+  -mf, --matchers-folder <folder>                      Folder containing matchers.
+  -p, --port <number>                                  Server port to use (default: "8080")
+  -d, --dashboard-url <url>                            Base URL of dashboard (default: "http://localhost:8080")
+  -ttl, --time-to-live <minutes>                       Time to keep server running after it was started. (default: "30")
+  -bbsat, --bitbucket-server-access-token <token>      Bitbucket Server access token
+  -bbsu, --bitbucket-server-url <url>                  Bitbucket Server base URL to use for REST integration
+  -bbsp, --bitbucket-server-projects <projects>        Bitbucket Server projects. Empty will include all projects.
+  -mip, --minimum-port-number <port>                   Minimum port number to use for spawned servers (default: "9000")
+  -map, --maximum-port-number <port>                   Maximum port number to use for spawned servers (default: "9999")
+  -ict, --integration-cache-ttl <minutes>              Cache time to live, seconds (default: "120")
+  -nc, --no-cleanup                                    Do not cleanup state on startup: kill servers and clean workspace
+  -msbd, --minimum-seconds-between-dispatch <seconds>  Minimum time between spawning new servers from same url and branch (default: "10")
+  -h, --help                                           display help for command
 ```
 
 ## API

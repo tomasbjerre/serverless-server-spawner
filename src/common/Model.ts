@@ -25,7 +25,7 @@ export interface Server {
   cloneUrl: string;
   branch: string;
   port: number | undefined;
-  startTimestamp: number | undefined;
+  startTimestamp: number;
   endTimestamp: number | undefined;
   revision: string | undefined;
   inactive: boolean | undefined;
@@ -62,8 +62,9 @@ export interface ServerSettings {
   matchersFolder: string;
   timeToLive: number;
   gitService: GitServices;
-  cacheTtl: number;
+  integrationCacheTtl: number;
   minimumPortNumber: number;
   maximumPortNumber: number;
   cleanup: boolean;
+  minimumSecondsBetweenDispatch: number;
 }

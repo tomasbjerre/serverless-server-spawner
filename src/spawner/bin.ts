@@ -54,10 +54,19 @@ const program = new Command()
     'Maximum port number to use for spawned servers',
     '9999'
   )
-  .option('-ct, --cache-ttl <minutes>', 'Cache time to live, seconds', '120')
+  .option(
+    '-ict, --integration-cache-ttl <minutes>',
+    'Cache time to live, seconds',
+    '120'
+  )
   .option(
     '-nc, --no-cleanup',
     'Do not cleanup state on startup: kill servers and clean workspace'
+  )
+  .option(
+    '-msbd, --minimum-seconds-between-dispatch <seconds>',
+    'Minimum time between spawning new servers from same url and branch',
+    '10'
   );
 program.parse(process.argv);
 
@@ -71,7 +80,7 @@ const timeToLive = program.opts().timeToLive;
 const bitbucketServerAccessToken = program.opts().bitbucketServerAccessToken;
 const bitbucketServerUrl = program.opts().bitbucketServerUrl;
 const bitbucketServerProjects = program.opts().bitbucketServerProjects;
-const cacheTtl = program.opts().cacheTtl;
+const integrationCacheTtl = program.opts().integrationCacheTtl;
 const minimumPortNumber = program.opts().minimumPortNumber;
 const maximumPortNumber = program.opts().maximumPortNumber;
 const cleanup = program.opts().cleanup;
@@ -82,6 +91,8 @@ const bitbucketServer = bitbucketServerUrl
       projects: bitbucketServerProjects || [],
     } as BitbucketServer)
   : undefined;
+const minimumSecondsBetweenDispatch =
+  program.opts().minimumSecondsBetweenDispatch;
 console.log(`
  port: ${port}
  dashboardUrl: ${dashboardUrl}
@@ -89,10 +100,11 @@ console.log(`
  matchersFolder: ${matchersFolder}
  timeToLive: ${timeToLive}
  bitbucketServer: ${bitbucketServer ? 'configured' : 'not configured'}
- cacheTtl: ${cacheTtl}
+ integrationCacheTtl: ${integrationCacheTtl}
  minimumPortNumber: ${minimumPortNumber}
  maximumPortNumber: ${maximumPortNumber}
  cleanup: ${cleanup}
+ minimumSecondsBetweenDispatch: ${minimumSecondsBetweenDispatch}
 
  http://localhost:${port}
 `);
@@ -105,8 +117,9 @@ run({
   gitService: {
     bitbucketServer,
   },
-  cacheTtl,
+  integrationCacheTtl,
   minimumPortNumber,
   maximumPortNumber,
   cleanup,
+  minimumSecondsBetweenDispatch,
 });

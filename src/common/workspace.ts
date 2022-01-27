@@ -82,6 +82,25 @@ export class Workspace {
     fsextra.emptyDirSync(serverFolder);
   }
 
+  public findOrCreateServer(
+    cloneUrl: string,
+    branch: string,
+    minimumSecondsBetweenDispatch: number
+  ): ServerId {
+    for (let server of this.getServers()) {
+      if (server.branch == branch && server.cloneUrl == cloneUrl) {
+        const age = (Date.now() - server.startTimestamp) / 1000;
+        if (age < minimumSecondsBetweenDispatch) {
+          console.log(
+            `Using existing server ${server.id} of age ${age} because it is less than ${minimumSecondsBetweenDispatch}.`
+          );
+          return server.id;
+        }
+      }
+    }
+    return this.createServer(cloneUrl, branch);
+  }
+
   public createServer(cloneUrl: string, branch: string): ServerId {
     const serverId = randomUUID();
     const serverFolder = path.join(this.folder, serverId);
