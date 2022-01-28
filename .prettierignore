@@ -1,3 +1,4 @@
 lib
-**/jquery.js
+**/*.min.js
+**/*.min.css
 serverless-server-spawner-workspace

@@ -1,7 +1,13 @@
 import fs from 'fs';
 import fsextra from 'fs-extra';
 import path from 'path';
-import { Server, ServerId, ServerLogFile, ProcessId } from './Model';
+import {
+  Server,
+  ServerId,
+  ServerLogFile,
+  ProcessId,
+  ServerState,
+} from './Model';
 import { randomUUID, validateUuid } from './common';
 import { processExists, shutdownProcess, spawnProcess } from './process';
 
@@ -22,10 +28,11 @@ export class Workspace {
       .map((it) => path.join(this.folder, it, SERVER_FILE))
       .filter((it) => fs.existsSync(it))
       .map((it) => fs.readFileSync(it, 'utf-8'))
-      .map((it) => JSON.parse(it) as Server);
+      .map((it) => JSON.parse(it) as Server)
+      .map((it) => ({ ...it, state: this.getServerState(it.id) }));
   }
 
-  public getServerState(id: ServerId): ServerLogFile | 'nopid' {
+  public getServerState(id: ServerId): ServerState {
     for (let kind of ['run', 'prepare', 'clone', 'spawn'] as ServerLogFile[]) {
       if (this.getServerPid(id, kind) != -1) {
         return kind;
@@ -115,6 +122,7 @@ export class Workspace {
       startTimestamp: Date.now(),
       revision: undefined,
       inactive: undefined,
+      state: this.getServerState(serverId),
     };
     console.log(`created ${serverFolder}`);
     const filename = path.join(serverFolder, SERVER_FILE);

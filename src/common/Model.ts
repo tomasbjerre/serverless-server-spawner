@@ -3,6 +3,7 @@ export type ProcessId = number;
 export type ServerId = string;
 
 export type ServerLogFile = 'clone' | 'prepare' | 'run' | 'spawn';
+export type ServerState = ServerLogFile | 'nopid';
 
 export interface Matched {
   name: string;
@@ -29,6 +30,7 @@ export interface Server {
   endTimestamp: number | undefined;
   revision: string | undefined;
   inactive: boolean | undefined;
+  state: ServerState;
 }
 
 export interface CloneUrlCategoryItem {

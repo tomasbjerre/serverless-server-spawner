@@ -2,49 +2,253 @@
   <head>
     <!DOCTYPE html>
     <title>Serverless Server Spawner</title>
-    <script src="jquery.js"></script>
-    <script src="index.js"></script>
-    <link rel="stylesheet" href="spinner.css" />
+    <script src="axios.min.js"></script>
+    <script src="vue.min.js"></script>
+    <link rel="stylesheet" href="foundation.min.css" />
+    <style>
+      .accordionActive {
+        display: block;
+      }
+    </style>
   </head>
   <body>
-    <div>
-      <button onclick="clearcache()">clearcache</button>
-      <button onclick="stopandremoveallservers()">
-        stopandremoveallservers
-      </button>
+    <div id="app">
+      <div v-if="action == 'dashboard'">
+        <div v-if="servers.length == 0">
+          No servers running. Dispatch a server by browsing to
+          <i>{{getDispatchLink('CLONEURL','BRANCHNAME')}}</i>
+        </div>
+        <div v-for="server in servers" :key="server.id" class="grid-x">
+          <div class="grid-x">
+            <div class="cell">
+              <a :href="serverUrl(server)">{{serverName(server)}}</a>
+              <i
+                >{{server.branch||''}}
+                ({{(server.revision||'?????').substring(0,5)}})</i
+              >
+              <span v-if="server.state == 'run'" class="badge success"
+                >Running</span
+              >
+              <span v-if="server.state == 'spawn'" class="badge primary"
+                >Spawning</span
+              >
+              <span v-if="server.state == 'clone'" class="badge secondary"
+                >Cloning</span
+              >
+              <span v-if="server.state == 'nopid'" class="badge alert"
+                >No process</span
+              >
+              <span v-if="server.state == 'prepare'" class="badge warning"
+                >Preparing</span
+              >
+            </div>
+            <div class="cell">
+              <progress max="100" :value="serverPercentLeft(server)"></progress>
+              {{serverTimeLeft(server)}} left
+            </div>
+            <div class="cell">
+              <a
+                class="secondary button small"
+                :href="`/api/servers/${server.id}/log/spawn`"
+                >View spawn-log</a
+              >
+              <a
+                class="secondary button small"
+                :href="`/api/servers/${server.id}/log/clone`"
+                >View clone-log</a
+              >
+              <a
+                class="secondary button small"
+                :href="`/api/servers/${server.id}/log/prepare`"
+                >View prepare-log</a
+              >
+              <a
+                class="secondary button small"
+                :href="`/api/servers/${server.id}/log/run`"
+                >View run-log</a
+              >
+              <button
+                class="submit success button small"
+                @click="onClickDispatch(server)"
+              >
+                Dispatch server again
+              </button>
+              <button
+                type="button"
+                class="alert button small"
+                @click="onClickStop(server)"
+              >
+                Stop server
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="action == 'dispatch'">
+        Dispatching {{serverName(dispatchServer)}}
+        <i
+          >{{dispatchServer.branch||''}}
+          ({{(dispatchServer.revision||'?????').substring(0,5)}})</i
+        >...
+        <ul class="accordion">
+          <div v-for="kind in logKinds">
+            <li
+              :class="{'accordion-item':true, 'is-active':isActiveKind[kind]}"
+              v-if="dispatchLog[kind] != ''"
+            >
+              <a
+                href="#"
+                class="accordion-title"
+                @click="isActiveKind[kind] = !isActiveKind[kind]"
+                >{{kind}}</a
+              >
+              <div
+                :class="{'accordion-content':true, accordionActive: isActiveKind[kind]}"
+              >
+                <div style="word-wrap: break-word">
+                  {{safeHtml(dispatchLog[kind])}}
+                </div>
+              </div>
+            </li>
+          </div>
+        </ul>
+      </div>
     </div>
-    <div id="categories" style="display: none">
-      <label id="repositories"
-        >Repositories:
-        <select onChange="repositorySelected()"></select>
-      </label>
-      <label id="branches"
-        >Branches:
-        <select onChange="branchSelected()"></select>
-      </label>
-    </div>
-    <div>
-      <textarea
-        id="log-run"
-        style="width: 100%; height: 600px; display: none"
-      ></textarea>
-      <textarea
-        id="log-prepare"
-        style="width: 100%; height: 600px; display: none"
-      ></textarea>
-      <textarea
-        id="log-clone"
-        style="width: 100%; height: 600px; display: none"
-      ></textarea>
-      <textarea
-        id="log-spawn"
-        style="width: 100%; height: 600px; display: none"
-      ></textarea>
-    </div>
-    <div id="loading" class="loading" style="display: none">Loading&#8230;</div>
-    <div id="dispatch"></div>
-    <label>Servers</label>
-    <div id="servers"></div>
+    <script>
+      new Vue({
+        el: '#app',
+        data: {
+          servers: [],
+          dispatchLog: {},
+          dispatchState: 'nopid',
+          dispatchServer: {},
+          logKinds: ['run', 'prepare', 'spawn', 'clone'],
+          isActiveKind: { run: true, prepare: true, spawn: true, clone: true },
+        },
+        created() {
+          this.action = this.getHashParams().action || 'dashboard';
+          if (this.action == 'dispatch') {
+            const serverId = this.getHashParams().server;
+            this.pollServer(serverId);
+            setInterval(() => {
+              this.pollServer(serverId);
+            }, 5000);
+          } else {
+            this.pollServers();
+            setInterval(this.pollServers, 1000);
+          }
+        },
+        methods: {
+          pollServer: async function (serverId) {
+            this.dispatchServer = (
+              await axios.get(`/api/servers/${serverId}`)
+            ).data;
+            for (let kind of this.logKinds) {
+              const content = (
+                await axios.get(`/api/servers/${serverId}/log/${kind}`)
+              ).data;
+              Vue.set(this.dispatchLog, kind, content);
+            }
+            this.dispatchState = (
+              await axios.get(`/api/servers/${serverId}/state`)
+            ).data.state;
+            if (this.dispatchState == 'run') {
+              const serverUrl = this.serverUrl(this.dispatchServer);
+              document.location.href = serverUrl;
+            }
+          },
+          pollServers: async function () {
+            this.servers = (await axios.get('/api/servers')).data;
+          },
+          serverName(server) {
+            if (server.name) {
+              return server.name;
+            }
+            return server.id;
+          },
+          toPercent(endMillis, startMillis) {
+            const millisLeft = endMillis - Date.now();
+            const totalMillis = endMillis - startMillis;
+            const percent = Math.round((millisLeft / totalMillis) * 100);
+            if (percent > 0) {
+              return percent;
+            }
+            return 0;
+          },
+          serverPercentLeft(server) {
+            const progress = this.toPercent(
+              server.endTimestamp,
+              server.startTimestamp
+            );
+            return progress;
+          },
+          serverProgress(server) {
+            return `width: ${this.serverPercentLeft(server)}%`;
+          },
+          prettyTime(millis) {
+            if (millis < 0) {
+              return 0;
+            }
+            const sec_num = millis / 1000;
+            const hours = Math.floor(sec_num / 3600);
+            const minutes = Math.floor((sec_num - hours * 3600) / 60);
+            const seconds = Math.floor(sec_num - hours * 3600 - minutes * 60);
+            if (hours > 0) {
+              return (
+                hours +
+                ' hours, ' +
+                minutes +
+                ' minutes and ' +
+                seconds +
+                ' seconds'
+              );
+            }
+            if (minutes > 0) {
+              return minutes + ' minutes and ' + seconds + ' seconds';
+            }
+            return seconds + ' seconds';
+          },
+          serverTimeLeft(server) {
+            return this.prettyTime(server.endTimestamp - Date.now());
+          },
+          getDispatchLink(cloneUrl, branch) {
+            return `${window.location.protocol}//${
+              window.location.host
+            }/api/dispatch?cloneurl=${encodeURI(cloneUrl)}&branch=${branch}`;
+          },
+          onClickDispatch(server) {
+            document.location.href = this.getDispatchLink(
+              server.cloneUrl,
+              server.branch
+            );
+          },
+          onClickStop(server) {
+            axios.post(`/api/servers/${server.id}/stop`);
+          },
+          serverUrl(server) {
+            return `${window.location.protocol}//${window.location.hostname}:${server.port}`;
+          },
+          getHashParams() {
+            const hashParams = {};
+            var e,
+              a = /\+/g, // Regex for replacing addition symbol with a space
+              r = /([^&;=]+)=?([^&;]*)/g,
+              d = function (s) {
+                return decodeURIComponent(s.replace(a, ' '));
+              },
+              q = window.location.hash.substring(1);
+            while ((e = r.exec(q))) hashParams[d(e[1])] = d(e[2]);
+            return hashParams;
+          },
+          safeHtml(str) {
+            var p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+          },
+        },
+      });
+    </script>
+    <hr />
     <p>
       This is a very basic dashboard. You are encouraged to implement your own,
       using the
