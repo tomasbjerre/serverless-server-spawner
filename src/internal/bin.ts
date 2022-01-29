@@ -107,21 +107,22 @@ if (program.opts().task == 'spawn') {
   const serverToSpawn = workspace.getServer(serverId);
   const repoFolder = workspace.getServerRepoFolder(serverId);
 
-  setTimeout(() => {
-    console.log(
-      `Killing spawned server ${process.pid} after ${timeToLive} minutes`
-    );
-    workspace.removeServer(serverId);
-    kill(process.pid, 'SIGKILL', function (err: Error) {
-      console.log(err);
-    });
-  }, timeToLive * 60 * 1000);
-
   process.on('uncaughtException', function (err) {
     console.log(
       `Caught an error, will keep logs for ${timeToLive} minutes.`,
       err
     );
+    console.log(
+      `Keeping ${process.pid} alive for ${timeToLive} minutes, to make logs availble.`
+    );
+    setTimeout(() => {
+      workspace.removeServer(serverId);
+      kill(process.pid);
+    }, timeToLive * 60 * 1000);
+  });
+
+  process.on('exit', (code) => {
+    workspace.removeServer(serverId);
   });
 
   cloneRepo(repoFolder, serverToSpawn);
@@ -169,8 +170,17 @@ if (program.opts().task == 'spawn') {
       fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
 
       console.log(
-        `Will kill '${serverToSpawn.name}' with pid ${process.pid} after ${timeToLive} minutes`
+        `Will kill '${serverToSpawn.name}' with pid ${spawnedServerProcess.pid} after ${timeToLive} minutes`
       );
+
+      setTimeout(() => {
+        console.log(
+          `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
+        );
+        kill(spawnedServerProcess.pid, 'SIGKILL', function (err: Error) {
+          console.log(err);
+        });
+      }, timeToLive * 60 * 1000);
     });
   });
 }
