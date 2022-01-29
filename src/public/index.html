@@ -19,6 +19,11 @@
           <i>{{getDispatchLink('CLONEURL','BRANCHNAME')}}</i>
           <hr />
         </div>
+        <div>
+          Port range from <i>{{settings.minimumPortNumber}}</i> to
+          <i>{{settings.maximumPortNumber}}</i>, {{portsUsed}} used,
+          {{portsAvailable}} available, {{portsUsedPercent}}% used.
+        </div>
         <div v-if="category1Options.length > 0">
           <label
             >Category1:
@@ -192,6 +197,7 @@
           category2: undefined,
           cloneUrl: undefined,
           branch: undefined,
+          settings: {},
         },
         async created() {
           this.action = this.getHashParams().action || 'dashboard';
@@ -212,6 +218,8 @@
             this.cloneUrlCategories.map((it) => it.category1),
             'key'
           );
+
+          this.settings = (await axios.get(`/api/settings`)).data;
         },
         watch: {
           category1: function (val) {
@@ -254,6 +262,19 @@
             this.branchesOptions = this.cloneUrlsAndBranches
               .filter((it) => it.cloneUrl == this.cloneUrl)
               .map((it) => it.branch);
+          },
+        },
+        computed: {
+          portsUsed: function () {
+            return this.servers.filter((it) => it.port).length;
+          },
+          portsAvailable: function () {
+            return (
+              this.settings.maximumPortNumber - this.settings.minimumPortNumber
+            );
+          },
+          portsUsedPercent: function () {
+            return Math.round((this.portsUsed / this.portsAvailable) * 100);
           },
         },
         methods: {
