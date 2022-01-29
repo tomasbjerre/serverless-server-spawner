@@ -28,8 +28,9 @@
         </div>
         <div>
           Port range from <i>{{settings.minimumPortNumber}}</i> to
-          <i>{{settings.maximumPortNumber}}</i>, {{portsUsed}} used,
-          {{portsAvailable}} available, {{portsUsedPercent}}% used.
+          <i>{{settings.maximumPortNumber}}</i>, using <i>{{portsUsed}}</i> of
+          <i>{{portsTotal}}</i>, <i>{{portsAvailable}}</i> available, using
+          <i>{{portsUsedPercent}}</i>%.
         </div>
         <div v-if="category1Options.length > 0">
           <label
@@ -281,12 +282,15 @@
             return this.servers.filter((it) => it.port).length;
           },
           portsAvailable: function () {
+            return this.portsTotal - this.portsUsed;
+          },
+          portsTotal: function () {
             return (
               this.settings.maximumPortNumber - this.settings.minimumPortNumber
             );
           },
           portsUsedPercent: function () {
-            return Math.round((this.portsUsed / this.portsAvailable) * 100);
+            return Math.round((this.portsUsed / this.portsTotal) * 100);
           },
         },
         methods: {
