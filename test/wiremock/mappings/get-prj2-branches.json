@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "url": "/projects/PRJ2/repos/my-repo/branches"
+    "url": "/projects/PRJ2/repos/my-repo-prj2/branches"
   },
   "response": {
     "status": 200,

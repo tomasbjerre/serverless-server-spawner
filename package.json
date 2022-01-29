@@ -5,7 +5,8 @@
     "build": "rm -rf lib && npm run format && mkdir lib && cp -rv src/public lib/public && tsc -p .",
     "format": "prettier --write .",
     "release": "npm run build && npm version patch && npm publish && git push --follow-tags",
-    "mock": "npx wiremock --root-dir test/wiremock --port 8081"
+    "mock": "npx wiremock --root-dir test/wiremock --port 8081",
+    "start-mocked-bbs": "npm install  && npm run build  && node ./lib/spawner/bin.js  --matchers-folder /home/bjerre/workspace/serverless/serverless-sandbox/matchers  --time-to-live 1 --bitbucket-server-url http://localhost:8081 --bitbucket-server-access-token whatever --bitbucket-server-projects PRJ1,PRJ2"
   },
   "bin": "./lib/spawner/bin.js",
   "dependencies": {

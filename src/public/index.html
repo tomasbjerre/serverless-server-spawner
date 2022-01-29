@@ -17,6 +17,64 @@
         <div v-if="servers.length == 0">
           No servers running. Dispatch a server by browsing to
           <i>{{getDispatchLink('CLONEURL','BRANCHNAME')}}</i>
+          <hr />
+        </div>
+        <div v-if="category1Options.length > 0">
+          <label
+            >Category1:
+            <select v-model="category1">
+              <option
+                v-for="category in category1Options"
+                :key="category.key"
+                :value="category.key"
+              >
+                {{category.name}}
+              </option>
+            </select>
+          </label>
+          <label v-if="category1"
+            >Category2:
+            <select v-model="category2">
+              <option
+                v-for="category of category2Options"
+                :key="category.key"
+                :value="category.key"
+              >
+                {{category.name}}
+              </option>
+            </select>
+          </label>
+          <label v-if="category2"
+            >Repository:
+            <select v-model="cloneUrl">
+              <option
+                v-for="cloneUrl of cloneUrlOptions"
+                :key="cloneUrl.cloneUrl"
+                :value="cloneUrl.cloneUrl"
+              >
+                {{cloneUrl.id}}
+              </option>
+            </select>
+          </label>
+          <label v-if="cloneUrl"
+            >Branch:
+            <select v-model="branch">
+              <option
+                v-for="branch of branchesOptions"
+                :key="branch"
+                :value="branch"
+              >
+                {{branch}}
+              </option>
+            </select>
+          </label>
+          <div v-if="cloneUrl && branch">
+            Dispatch link:
+            <a :href="getDispatchLink(cloneUrl,branch)"
+              >{{getDispatchLink(cloneUrl,branch)}}</a
+            >
+          </div>
+          <hr />
         </div>
         <div v-for="server in servers" :key="server.id" class="grid-x">
           <div class="grid-x">
@@ -124,9 +182,20 @@
           dispatchServer: {},
           logKinds: ['run', 'prepare', 'spawn', 'clone'],
           isActiveKind: { run: true, prepare: true, spawn: true, clone: true },
+          cloneUrlCategories: [],
+          cloneUrlsAndBranches: [],
+          category1Options: [],
+          category2Options: [],
+          cloneUrlOptions: [],
+          branchesOptions: [],
+          category1: undefined,
+          category2: undefined,
+          cloneUrl: undefined,
+          branch: undefined,
         },
-        created() {
+        async created() {
           this.action = this.getHashParams().action || 'dashboard';
+
           if (this.action == 'dispatch') {
             const serverId = this.getHashParams().server;
             this.pollServer(serverId);
@@ -137,8 +206,69 @@
             this.pollServers();
             setInterval(this.pollServers, 1000);
           }
+
+          this.cloneUrlCategories = await this.getCloneUrlCategories();
+          this.category1Options = this.uniqueByAttribute(
+            this.cloneUrlCategories.map((it) => it.category1),
+            'key'
+          );
+        },
+        watch: {
+          category1: function (val) {
+            this.category1 = val;
+            this.category2 = '';
+            this.cloneUrl = '';
+            this.branch = '';
+            this.cloneUrlsAndBranches = [];
+            this.cloneUrlOptions = [];
+            this.branchesOptions = [];
+            this.category2Options = this.uniqueByAttribute(
+              this.cloneUrlCategories
+                .filter((it) => it.category1.key == this.category1)
+                .map((it) => it.category2),
+              'key'
+            );
+          },
+          category2: async function (val) {
+            this.category2 = val;
+            this.cloneUrl = '';
+            this.branch = '';
+            if (this.category2) {
+              this.cloneUrlsAndBranches = await this.getCloneUrlsAndBranches(
+                this.category1,
+                this.category2
+              );
+              this.cloneUrlOptions = this.uniqueByAttribute(
+                this.cloneUrlsAndBranches,
+                'id'
+              );
+              this.branchesOptions = [];
+            } else {
+              this.cloneUrlsAndBranches = [];
+              this.cloneUrlOptions = [];
+              this.branchesOptions = [];
+            }
+          },
+          cloneUrl: function (val) {
+            this.branch = '';
+            this.branchesOptions = this.cloneUrlsAndBranches
+              .filter((it) => it.cloneUrl == this.cloneUrl)
+              .map((it) => it.branch);
+          },
         },
         methods: {
+          uniqueByAttribute(list, attr) {
+            const filtered = [];
+            const keysAdded = [];
+            for (let candidate of list) {
+              const key = candidate[attr];
+              if (keysAdded.indexOf(key) == -1) {
+                filtered.push(candidate);
+              }
+              keysAdded.push(key);
+            }
+            return filtered;
+          },
           pollServer: async function (serverId) {
             this.dispatchServer = (
               await axios.get(`/api/servers/${serverId}`)
@@ -244,6 +374,16 @@
             var p = document.createElement('p');
             p.textContent = str;
             return p.innerHTML;
+          },
+          getCloneUrlCategories: async function () {
+            return (await axios.get('/api/cloneurlcategories')).data;
+          },
+          getCloneUrlsAndBranches: async function (category1, category2) {
+            return (
+              await axios.get(
+                `/api/cloneurlcategories/${category1}/${category2}/branches`
+              )
+            ).data;
           },
         },
       });

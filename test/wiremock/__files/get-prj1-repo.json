@@ -1,7 +1,7 @@
 {
-  "slug": "my-repo",
+  "slug": "my-repo-prj1",
   "id": 1,
-  "name": "My repo",
+  "name": "My repo prj1",
   "scmId": "git",
   "state": "AVAILABLE",
   "statusMessage": "Available",
@@ -38,7 +38,7 @@
         "name": "http"
       },
       {
-        "href": "ssh://git@<baseURL>/PRJ1/my-repo.git",
+        "href": "ssh://git@<baseURL>/PRJ1/my-repo-prj1.git",
         "name": "ssh"
       }
     ],
