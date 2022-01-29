@@ -10,6 +10,7 @@ import { Server } from '../common/Model';
 import { spawnProcess } from '../common/process';
 const pkgJson = require(path.join(__dirname, '..', '..', 'package.json'));
 const events = require('events');
+var kill = require('tree-kill');
 
 const program = new Command()
   .version(pkgJson.version)
@@ -68,19 +69,34 @@ function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
       `Cloned ${serverToSpawn.cloneUrl} ${serverToSpawn.branch} to ${cloneFolder}`
     );
     if (code !== 0) {
-      eventEmitter.emit('error');
+      throw `Unable to clone ${serverToSpawn.cloneUrl}`;
     }
     eventEmitter.emit('success');
   });
 }
 
 async function findFreePort(min: number, max: number): Promise<number> {
-  const attempts = (max - min) * 2;
+  const scope = max - min;
+  const attempts = scope * 2;
+  let randomPortInScope = Math.round(Math.random() * (max - min + 1));
   for (let i = 0; i <= attempts; i++) {
-    const r = min + Math.round(Math.random() * (max - min));
-    const available = await portastic.test(r);
+    const candidatePort = min + (randomPortInScope++ % scope);
+    console.log(`Trying to acquire port ${candidatePort}`);
+    const available = await portastic.test(candidatePort);
     if (available) {
-      return r;
+      const takenByOtherServer = workspace
+        .getServers()
+        .find((it) => it.port == candidatePort);
+      if (takenByOtherServer) {
+        console.log(
+          `Port ${candidatePort} will be used by other server ${takenByOtherServer}`
+        );
+      } else {
+        console.log(`Acquired port ${candidatePort}`);
+        return candidatePort;
+      }
+    } else {
+      console.log(`Port ${candidatePort} is used`);
     }
   }
   throw `No available ports between ${min} and ${max}`;
@@ -91,15 +107,24 @@ if (program.opts().task == 'spawn') {
   const serverToSpawn = workspace.getServer(serverId);
   const repoFolder = workspace.getServerRepoFolder(serverId);
 
-  cloneRepo(repoFolder, serverToSpawn);
-
   setTimeout(() => {
     console.log(
       `Killing spawned server ${process.pid} after ${timeToLive} minutes`
     );
     workspace.removeServer(serverId);
-    process.exit();
+    kill(process.pid, 'SIGKILL', function (err: Error) {
+      console.log(err);
+    });
   }, timeToLive * 60 * 1000);
+
+  process.on('uncaughtException', function (err) {
+    console.log(
+      `Caught an error, will keep logs for ${timeToLive} minutes.`,
+      err
+    );
+  });
+
+  cloneRepo(repoFolder, serverToSpawn);
 
   eventEmitter.once('success', async () => {
     const revision = getGitRevision(repoFolder);
@@ -122,12 +147,6 @@ if (program.opts().task == 'spawn') {
       console.log(`Preparation done with '${matched.prepareCommand}'`);
       eventEmitter.emit('success');
     });
-    prepareServerProcess.on('error', function (err: any) {
-      console.log(`Error with ${matched.prepareCommand} in ${repoFolder}`, err);
-      const serverFile = workspace.getServerFile(serverId);
-      serverToSpawn.inactive = true;
-      fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
-    });
 
     eventEmitter.once('success', async () => {
       const portNumber = await findFreePort(
@@ -144,12 +163,6 @@ if (program.opts().task == 'spawn') {
         matched.startCommand,
         { env }
       );
-      spawnedServerProcess.on('error', function (err: any) {
-        console.log(`Error with ${matched.startCommand} in ${repoFolder}`, err);
-        const serverFile = workspace.getServerFile(serverId);
-        serverToSpawn.inactive = true;
-        fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
-      });
 
       const serverFile = workspace.getServerFile(serverId);
       serverToSpawn.port = portNumber;

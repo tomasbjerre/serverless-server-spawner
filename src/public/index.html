@@ -9,6 +9,13 @@
       .accordionActive {
         display: block;
       }
+      .code {
+        word-wrap: break-word;
+        white-space: pre;
+      }
+      body {
+        padding: 0 20px;
+      }
     </style>
   </head>
   <body>
@@ -84,7 +91,14 @@
         <div v-for="server in servers" :key="server.id" class="grid-x">
           <div class="grid-x">
             <div class="cell">
-              <a :href="serverUrl(server)">{{serverName(server)}}</a>
+              <a v-if="server.state == 'run'" :href="serverUrl(server)"
+                >{{serverName(server)}}</a
+              >
+              <a
+                v-if="server.state != 'run'"
+                :href="getDispatchLink(server.cloneUrl,server.branch)"
+                >{{serverName(server)}}</a
+              >
               <i
                 >{{server.branch||''}}
                 ({{(server.revision||'?????').substring(0,5)}})</i
@@ -168,9 +182,7 @@
               <div
                 :class="{'accordion-content':true, accordionActive: isActiveKind[kind]}"
               >
-                <div style="word-wrap: break-word">
-                  {{safeHtml(dispatchLog[kind])}}
-                </div>
+                <span class="code">{{safeHtml(dispatchLog[kind])}}</span>
               </div>
             </li>
           </div>

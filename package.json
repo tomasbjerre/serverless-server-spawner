@@ -6,7 +6,7 @@
     "format": "prettier --write .",
     "release": "npm run build && npm version patch && npm publish && git push --follow-tags",
     "mock": "npx wiremock --root-dir test/wiremock --port 8081",
-    "start-mocked-bbs": "npm install  && npm run build  && node ./lib/spawner/bin.js  --matchers-folder /home/bjerre/workspace/serverless/serverless-sandbox/matchers  --time-to-live 1 --bitbucket-server-url http://localhost:8081 --bitbucket-server-access-token whatever --bitbucket-server-projects PRJ1,PRJ2 --minimum-port-number 9000 --maximum-port-number 9020"
+    "start-mocked-bbs": "npm install  && npm run build  && node ./lib/spawner/bin.js  --matchers-folder /home/bjerre/workspace/serverless/serverless-sandbox/matchers  --time-to-live 1 --bitbucket-server-url http://localhost:8081 --bitbucket-server-access-token whatever --bitbucket-server-projects PRJ1,PRJ2 --minimum-port-number 9010 --maximum-port-number 9012"
   },
   "bin": "./lib/spawner/bin.js",
   "dependencies": {
@@ -18,6 +18,7 @@
     "node-cache": "^5.1.2",
     "path": "^0.12.7",
     "portastic": "^1.0.1",
+    "tree-kill": "^1.2.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

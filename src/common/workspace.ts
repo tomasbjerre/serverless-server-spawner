@@ -87,6 +87,7 @@ export class Workspace {
   public removeServer(id: ServerId): void {
     const serverFolder = path.join(this.folder, id);
     fsextra.emptyDirSync(serverFolder);
+    fsextra.removeSync(serverFolder);
   }
 
   public findOrCreateServer(
