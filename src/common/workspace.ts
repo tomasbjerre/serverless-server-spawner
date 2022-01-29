@@ -9,7 +9,8 @@ import {
   ServerState,
 } from './Model';
 import { randomUUID, validateUuid } from './common';
-import { processExists, shutdownProcess, spawnProcess } from './process';
+import { processExists, spawnProcess } from './process';
+var kill = require('tree-kill');
 
 const SERVER_FILE = 'server.json';
 const REPO_FOLDER = 'repo';
@@ -29,7 +30,8 @@ export class Workspace {
       .filter((it) => fs.existsSync(it))
       .map((it) => fs.readFileSync(it, 'utf-8'))
       .map((it) => JSON.parse(it) as Server)
-      .map((it) => ({ ...it, state: this.getServerState(it.id) }));
+      .map((it) => ({ ...it, state: this.getServerState(it.id) }))
+      .sort((a, b) => `${a.name}-${a.id}`.localeCompare(`${b.name}-${b.id}`));
   }
 
   public getServerState(id: ServerId): ServerState {
@@ -90,11 +92,11 @@ export class Workspace {
     fsextra.removeSync(serverFolder);
   }
 
-  public findOrCreateServer(
+  public findServer(
     cloneUrl: string,
     branch: string,
     minimumSecondsBetweenDispatch: number
-  ): ServerId {
+  ): ServerId | undefined {
     for (let server of this.getServers()) {
       if (server.branch == branch && server.cloneUrl == cloneUrl) {
         const age = (Date.now() - server.startTimestamp) / 1000;
@@ -106,7 +108,7 @@ export class Workspace {
         }
       }
     }
-    return this.createServer(cloneUrl, branch);
+    return undefined;
   }
 
   public createServer(cloneUrl: string, branch: string): ServerId {
@@ -117,12 +119,12 @@ export class Workspace {
       cloneUrl,
       branch,
       id: serverId,
-      name: undefined,
+      name: '',
       port: undefined,
       endTimestamp: Date.now() + this.timeToLive * 60 * 1000,
       startTimestamp: Date.now(),
       revision: undefined,
-      inactive: undefined,
+      inactive: false,
       state: this.getServerState(serverId),
     };
     console.log(`created ${serverFolder}`);
@@ -139,7 +141,7 @@ export class Workspace {
       if (pid != -1) {
         console.log(`killing ${serverId} ${state} ${pid}`);
         try {
-          shutdownProcess(pid);
+          kill(pid);
         } catch (e) {
           console.log(`Was unable to kill ${pid}`, e);
         }

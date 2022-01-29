@@ -119,6 +119,7 @@
               <span v-if="server.state == 'prepare'" class="badge warning"
                 >Preparing</span
               >
+              <span v-if="server.inactive" class="badge alert">Inactive</span>
             </div>
             <div class="cell">
               <progress max="100" :value="serverPercentLeft(server)"></progress>
@@ -304,7 +305,9 @@
               }
               keysAdded.push(key);
             }
-            return filtered;
+            return filtered.sort((a, b) =>
+              `${a[attr]}`.localeCompare(`${b[attr]}`)
+            );
           },
           pollServer: async function (serverId) {
             this.dispatchServer = (

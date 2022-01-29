@@ -108,6 +108,9 @@ if (program.opts().task == 'spawn') {
   const repoFolder = workspace.getServerRepoFolder(serverId);
 
   process.on('uncaughtException', function (err) {
+    serverToSpawn.inactive = true;
+    const serverFile = workspace.getServerFile(serverId);
+    fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
     console.log(
       `Caught an error, will keep logs for ${timeToLive} minutes.`,
       err
@@ -132,9 +135,9 @@ if (program.opts().task == 'spawn') {
     console.log(`Revision of '${repoFolder}' is '${revision}'`);
     const matched = getMatched(matchersFolder, repoFolder);
 
-    const serverFile = workspace.getServerFile(serverId);
     serverToSpawn.name = matched.name;
     serverToSpawn.revision = revision;
+    const serverFile = workspace.getServerFile(serverId);
     fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
 
     const prepareServerProcess = workspace.spawnServerCommand(
@@ -165,8 +168,8 @@ if (program.opts().task == 'spawn') {
         { env }
       );
 
-      const serverFile = workspace.getServerFile(serverId);
       serverToSpawn.port = portNumber;
+      const serverFile = workspace.getServerFile(serverId);
       fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
 
       console.log(

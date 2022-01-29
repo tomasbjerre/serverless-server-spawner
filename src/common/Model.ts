@@ -21,15 +21,15 @@ export interface Matcher {
 }
 
 export interface Server {
-  name: string | undefined;
+  name: string;
   id: ServerId;
   cloneUrl: string;
   branch: string;
   port: number | undefined;
   startTimestamp: number;
-  endTimestamp: number | undefined;
+  endTimestamp: number;
   revision: string | undefined;
-  inactive: boolean | undefined;
+  inactive: boolean;
   state: ServerState;
 }
 

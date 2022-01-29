@@ -62,12 +62,15 @@ export async function run(settings: ServerSettings) {
   app.get('/api/dispatch', function (req: Request, res: Response) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
-    const serverId = workspace.findOrCreateServer(
+    let serverId = workspace.findServer(
       cloneUrl,
       branch,
       settings.minimumSecondsBetweenDispatch
     );
-    spawnServer(serverId, settings, workspace);
+    if (!serverId) {
+      serverId = workspace.createServer(cloneUrl, branch);
+      spawnServer(serverId, settings, workspace);
+    }
     res.redirect(`${settings.dashboardUrl}#action=dispatch&server=${serverId}`);
   });
 

@@ -82,7 +82,13 @@ class BitbucketService extends GitService {
         })
       );
     }
-    return categories.flat();
+    return categories
+      .flat()
+      .sort((a, b) =>
+        `${a.category1}-${a.category2}`.localeCompare(
+          `${b.category1}-${b.category2}`
+        )
+      );
   }
 
   async getCloneUrls(
@@ -93,12 +99,16 @@ class BitbucketService extends GitService {
     const repoResponse = await axios.get(repoUrl, this.config);
     const repoBranchUrl = `${this.settings.url}/projects/${category1}/repos/${category2}/branches`;
     const repoBranchResponse = await axios.get(repoBranchUrl, this.config);
-    return repoBranchResponse.data.values.map((branch: any) => {
-      return {
-        id: repoResponse.data.slug,
-        branch: branch.displayId,
-        cloneUrl: repoResponse.data.cloneUrl,
-      } as CloneUrl;
-    });
+    return repoBranchResponse.data.values
+      .map((branch: any) => {
+        return {
+          id: repoResponse.data.slug,
+          branch: branch.displayId,
+          cloneUrl: repoResponse.data.cloneUrl,
+        } as CloneUrl;
+      })
+      .sort((a: CloneUrl, b: CloneUrl) =>
+        `${a.cloneUrl}-${a.branch}`.localeCompare(`${b.cloneUrl}-${b.branch}`)
+      );
   }
 }
