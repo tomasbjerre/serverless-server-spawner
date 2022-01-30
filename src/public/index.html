@@ -34,7 +34,7 @@
         </div>
         <div v-if="category1Options.length > 0">
           <label
-            >Category1:
+            >Category:
             <select v-model="category1">
               <option
                 v-for="category in category1Options"
@@ -46,7 +46,7 @@
             </select>
           </label>
           <label v-if="category1"
-            >Category2:
+            >Project:
             <select v-model="category2">
               <option
                 v-for="category of category2Options"
@@ -54,18 +54,6 @@
                 :value="category.key"
               >
                 {{category.name}}
-              </option>
-            </select>
-          </label>
-          <label v-if="category2"
-            >Repository:
-            <select v-model="cloneUrl">
-              <option
-                v-for="cloneUrl of cloneUrlOptions"
-                :key="cloneUrl.cloneUrl"
-                :value="cloneUrl.cloneUrl"
-              >
-                {{cloneUrl.id}}
               </option>
             </select>
           </label>
@@ -205,7 +193,6 @@
           cloneUrlsAndBranches: [],
           category1Options: [],
           category2Options: [],
-          cloneUrlOptions: [],
           branchesOptions: [],
           category1: undefined,
           category2: undefined,
@@ -242,7 +229,6 @@
             this.cloneUrl = '';
             this.branch = '';
             this.cloneUrlsAndBranches = [];
-            this.cloneUrlOptions = [];
             this.branchesOptions = [];
             this.category2Options = this.uniqueByAttribute(
               this.cloneUrlCategories
@@ -253,21 +239,18 @@
           },
           category2: async function (val) {
             this.category2 = val;
-            this.cloneUrl = '';
             this.branch = '';
             if (this.category2) {
               this.cloneUrlsAndBranches = await this.getCloneUrlsAndBranches(
                 this.category1,
                 this.category2
               );
-              this.cloneUrlOptions = this.uniqueByAttribute(
-                this.cloneUrlsAndBranches,
-                'id'
-              );
+              this.cloneUrl = this.cloneUrlsAndBranches.find(
+                (it) => it.id == this.category2
+              ).cloneUrl;
               this.branchesOptions = [];
             } else {
               this.cloneUrlsAndBranches = [];
-              this.cloneUrlOptions = [];
               this.branchesOptions = [];
             }
           },
