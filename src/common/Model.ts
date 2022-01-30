@@ -9,6 +9,7 @@ export interface Matched {
   name: string;
   startCommand: string;
   prepareCommand: string;
+  isReady: (runLogContent: string, serverPort: number | undefined) => boolean;
   preStart: (repoFolder: string, env: any) => void;
 }
 
@@ -17,6 +18,7 @@ export interface Matcher {
   getPrepareCommand(repoFolder: string): string;
   getStartCommand(repoFolder: string): string;
   isMatching(repoFolder: string): boolean;
+  isReady: (runLogContent: string, serverPort: number | undefined) => boolean;
   preStart: (repoFolder: string, env: any) => void;
 }
 
@@ -29,8 +31,9 @@ export interface Server {
   startTimestamp: number;
   endTimestamp: number;
   revision: string | undefined;
-  inactive: boolean;
+  error: boolean;
   state: ServerState;
+  ready: boolean;
 }
 
 export interface CloneUrlCategoryItem {

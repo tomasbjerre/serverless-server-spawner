@@ -8,7 +8,7 @@ import {
   ProcessId,
   ServerState,
 } from './Model';
-import { randomUUID, validateUuid } from './common';
+import { randomUUID, validateUuid, getMatched } from './common';
 import { processExists, spawnProcess } from './process';
 var kill = require('tree-kill');
 
@@ -16,7 +16,11 @@ const SERVER_FILE = 'server.json';
 const REPO_FOLDER = 'repo';
 
 export class Workspace {
-  constructor(private folder: string, private timeToLive: number) {
+  constructor(
+    private folder: string,
+    private timeToLive: number,
+    private matchersFolder: string
+  ) {
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder);
     }
@@ -31,6 +35,7 @@ export class Workspace {
       .map((it) => fs.readFileSync(it, 'utf-8'))
       .map((it) => JSON.parse(it) as Server)
       .map((it) => ({ ...it, state: this.getServerState(it.id) }))
+      .map((it) => ({ ...it, ready: this.isReady(it) }))
       .sort((a, b) => `${a.name}-${a.id}`.localeCompare(`${b.name}-${b.id}`));
   }
 
@@ -41,6 +46,16 @@ export class Workspace {
       }
     }
     return 'nopid';
+  }
+
+  public isReady(server: Server): boolean {
+    const repoFolder = this.getServerRepoFolder(server.id);
+    if (server.state == 'run') {
+      const matched = getMatched(this.matchersFolder, repoFolder);
+      const runLogContent = this.getServerLog(server.id, 'run');
+      return matched.isReady(runLogContent, server.port);
+    }
+    return false;
   }
 
   public getServer(id: ServerId): Server {
@@ -124,8 +139,9 @@ export class Workspace {
       endTimestamp: Date.now() + this.timeToLive * 60 * 1000,
       startTimestamp: Date.now(),
       revision: undefined,
-      inactive: false,
+      error: false,
       state: this.getServerState(serverId),
+      ready: false,
     };
     console.log(`created ${serverFolder}`);
     const filename = path.join(serverFolder, SERVER_FILE);

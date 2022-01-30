@@ -16,6 +16,12 @@ export function getMatched(
   matchersFolder: string,
   repoFolder: string
 ): Matched {
+  if (!fs.existsSync(repoFolder)) {
+    throw `Folder does not exist: ${repoFolder}`;
+  }
+  if (!fs.existsSync(matchersFolder)) {
+    throw `Folder does not exist: ${matchersFolder}`;
+  }
   const matchers = fs
     .readdirSync(matchersFolder)
     .filter((it) => it.endsWith('.matcher.js'));
@@ -42,14 +48,12 @@ export function getMatched(
   const name = matcher.getName(repoFolder);
   const startCommand = matcher.getStartCommand(repoFolder);
   const prepareCommand = matcher.getPrepareCommand(repoFolder);
-  console.log(
-    `Matched '${name}' that can be prepared with '${prepareCommand}' and started with '${startCommand}'`
-  );
   return {
     name,
     startCommand,
     prepareCommand,
     preStart: matcher.preStart,
+    isReady: matcher.isReady,
   } as Matched;
 }
 

@@ -32,7 +32,11 @@ function spawnServer(
 }
 
 export async function run(settings: ServerSettings) {
-  const workspace = new Workspace(settings.workspace, settings.timeToLive);
+  const workspace = new Workspace(
+    settings.workspace,
+    settings.timeToLive,
+    settings.matchersFolder
+  );
 
   if (settings.cleanup) {
     await workspace.stopandremoveallservers();

@@ -41,7 +41,8 @@ const eventEmitter = new events.EventEmitter();
 const serverDir = path.join(program.opts().workspace, program.opts().server);
 const workspace = new Workspace(
   program.opts().workspace,
-  program.opts().timeToLive
+  program.opts().timeToLive,
+  program.opts().matchersFolder
 );
 const timeToLive = parseInt(program.opts().timeToLive);
 const matchersFolder = program.opts().matchersFolder;
@@ -108,7 +109,7 @@ if (program.opts().task == 'spawn') {
   const repoFolder = workspace.getServerRepoFolder(serverId);
 
   process.on('uncaughtException', function (err) {
-    serverToSpawn.inactive = true;
+    serverToSpawn.error = true;
     const serverFile = workspace.getServerFile(serverId);
     fs.writeFileSync(serverFile, JSON.stringify(serverToSpawn, null, 4));
     console.log(

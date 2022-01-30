@@ -107,7 +107,9 @@
               <span v-if="server.state == 'prepare'" class="badge warning"
                 >Preparing</span
               >
-              <span v-if="server.inactive" class="badge alert">Inactive</span>
+              <span v-if="server.error" class="badge alert">Error</span>
+              <span v-if="server.ready" class="badge success">Ready</span>
+              <span v-if="!server.ready" class="badge primary">Not ready</span>
             </div>
             <div class="cell">
               <progress max="100" :value="serverPercentLeft(server)"></progress>
@@ -302,10 +304,10 @@
               ).data;
               Vue.set(this.dispatchLog, kind, content);
             }
-            this.dispatchState = (
-              await axios.get(`/api/servers/${serverId}/state`)
-            ).data.state;
-            if (this.dispatchState == 'run') {
+            if (
+              this.dispatchServer.state == 'run' &&
+              this.dispatchServer.ready
+            ) {
               const serverUrl = this.serverUrl(this.dispatchServer);
               document.location.href = serverUrl;
             }
