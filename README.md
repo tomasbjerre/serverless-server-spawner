@@ -2,6 +2,8 @@
 
 [![NPM](https://img.shields.io/npm/v/serverless-server-spawner.svg?style=flat-square)](https://www.npmjs.com/package/serverless-server-spawner)
 
+![Demo](demo.gif)
+
 Basic idea:
 
 - Start it with `npx serverless-server-spawner`.
