@@ -11,7 +11,6 @@
       }
       .code {
         word-wrap: break-word;
-        white-space: pre;
       }
       body {
         padding: 0 20px;
@@ -179,9 +178,8 @@
               >
               <div
                 :class="{'accordion-content':true, accordionActive: isActiveKind[kind]}"
-              >
-                <span class="code">{{safeHtml(dispatchLog[kind])}}</span>
-              </div>
+                v-html="dispatchLog[kind]"
+              ></div>
             </li>
           </div>
         </ul>
@@ -308,7 +306,11 @@
               const content = (
                 await axios.get(`/api/servers/${serverId}/log/${kind}`)
               ).data;
-              Vue.set(this.dispatchLog, kind, content);
+              Vue.set(
+                this.dispatchLog,
+                kind,
+                this.safeHtml(content).replace(/(?:\r\n|\r|\n)/g, '<br>')
+              );
             }
             if (
               this.dispatchServer.state == 'run' &&
