@@ -115,7 +115,7 @@ Options:
   -d, --dashboard-url <url>                            Base URL of dashboard (default: "http://localhost:8080")
   -ttl, --time-to-live <minutes>                       Time to keep server running after it was started. (default: "30")
   -bbsat, --bitbucket-server-access-token <token>      Bitbucket Server access token
-  -bbsu, --bitbucket-server-url <url>                  Bitbucket Server base URL to use for REST integration
+  -bbsu, --bitbucket-server-url <url>                  Bitbucket Server to use for REST integration (https://bbs/rest/api/latest)
   -bbsp, --bitbucket-server-projects <projects>        Bitbucket Server projects. Empty will include all projects.
   -mip, --minimum-port-number <port>                   Minimum port number to use for spawned servers (default: "9000")
   -map, --maximum-port-number <port>                   Maximum port number to use for spawned servers (default: "9999")

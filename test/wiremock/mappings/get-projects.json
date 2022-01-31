@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "url": "/projects"
+    "url": "/projects?limit=9999"
   },
   "response": {
     "status": 200,

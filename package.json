@@ -6,7 +6,7 @@
     "format": "prettier --write .",
     "release": "npm run build && npm version patch && npm publish && git push --follow-tags",
     "start-mock": "wiremock --root-dir test/wiremock --port 8081",
-    "start-sss": "npm run build  && node ./lib/spawner/bin.js  --matchers-folder /home/bjerre/workspace/serverless/serverless-sandbox/matchers  --time-to-live 1 --bitbucket-server-url http://localhost:8081 --bitbucket-server-access-token whatever --bitbucket-server-projects PRJ1,PRJ2 --minimum-port-number 9010 --maximum-port-number 9012",
+    "start-sss": "npm run build  && node ./lib/spawner/bin.js  --matchers-folder `pwd`/../serverless-sandbox/matchers  --time-to-live 1 --bitbucket-server-url http://localhost:8081 --bitbucket-server-access-token whatever --bitbucket-server-projects PRJ1,PRJ2 --minimum-port-number 9010 --maximum-port-number 9012",
     "start": "concurrently \"npm run start-mock\" \"npm run start-sss\" --kill-others"
   },
   "bin": "./lib/spawner/bin.js",

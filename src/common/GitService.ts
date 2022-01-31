@@ -55,7 +55,7 @@ class BitbucketService extends GitService {
   }
 
   async getProjects(projectKeys: string[]): Promise<CloneUrlCategoryItem[]> {
-    const reposUrl = `${this.settings.url}/projects`;
+    const reposUrl = `${this.settings.url}/projects?limit=9999`;
     const response = await axios.get(reposUrl, this.config);
     return response.data.values
       .filter(
@@ -71,7 +71,7 @@ class BitbucketService extends GitService {
     const categories = [];
     const projects = await this.getProjects(this.settings.projects);
     for (let project of projects) {
-      const reposUrl = `${this.settings.url}/projects/${project.key}/repos`;
+      const reposUrl = `${this.settings.url}/projects/${project.key}/repos?limit=9999`;
       const response = await axios.get(reposUrl, this.config);
       categories.push(
         response.data.values.map((it: any) => {
@@ -95,16 +95,16 @@ class BitbucketService extends GitService {
     category1: string,
     category2: string
   ): Promise<CloneUrl[]> {
-    const repoUrl = `${this.settings.url}/projects/${category1}/repos/${category2}`;
+    const repoUrl = `${this.settings.url}/projects/${category1}/repos/${category2}?limit=9999`;
     const repoResponse = await axios.get(repoUrl, this.config);
-    const repoBranchUrl = `${this.settings.url}/projects/${category1}/repos/${category2}/branches`;
+    const repoBranchUrl = `${this.settings.url}/projects/${category1}/repos/${category2}/branches?limit=9999`;
     const repoBranchResponse = await axios.get(repoBranchUrl, this.config);
     return repoBranchResponse.data.values
       .map((branch: any) => {
         return {
           id: repoResponse.data.slug,
           branch: branch.displayId,
-          cloneUrl: repoResponse.data.cloneUrl,
+          cloneUrl: repoResponse.data.links.clone[0].href,
         } as CloneUrl;
       })
       .sort((a: CloneUrl, b: CloneUrl) =>

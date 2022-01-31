@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "url": "/projects/PRJ2/repos"
+    "url": "/projects/PRJ2/repos?limit=9999"
   },
   "response": {
     "status": 200,

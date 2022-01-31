@@ -29,6 +29,7 @@ export function spawnProcess(
   console.log(`Storing PID of '${command}' as ${p.pid} in ${pidFile}`);
   fs.writeFileSync(pidFile, `${p.pid}`);
   p.stdout.pipe(logStream);
+  p.stderr.pipe(process.stderr);
   p.stderr.pipe(logStream);
   p.on('close', () => {
     console.log(`Ended '${command}', removing ${pidFile}`);
@@ -38,5 +39,24 @@ export function spawnProcess(
       // It was probably removed by the spawner
     }
   });
+  p.on('error', (err: Error) => {
+    console.log(`Error '${command}', removing ${pidFile}`);
+    try {
+      fs.unlinkSync(pidFile);
+    } catch {
+      // It was probably removed by the spawner
+    }
+    console.log(err);
+  });
+  p.on('uncaughtException', (err: Error) => {
+    console.log(`UncaughtException '${command}', removing ${pidFile}`);
+    try {
+      fs.unlinkSync(pidFile);
+    } catch {
+      // It was probably removed by the spawner
+    }
+    console.log(err);
+  });
+
   return p;
 }

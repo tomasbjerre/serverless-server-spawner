@@ -85,7 +85,7 @@
               >
               <a
                 v-if="server.state != 'run'"
-                :href="getDispatchLink(server.cloneUrl,server.branch)"
+                :href="getActionDispatchLink(server.id)"
                 >{{serverName(server)}}</a
               >
               <i
@@ -154,11 +154,17 @@
         </div>
       </div>
       <div v-if="action == 'dispatch'">
-        Dispatching {{serverName(dispatchServer)}}
+        <a href="/">Back to servers</a>
+        <hr />
+        Dispatching <b>{{serverName(dispatchServer)}}</b>
         <i
           >{{dispatchServer.branch||''}}
           ({{(dispatchServer.revision||'?????').substring(0,5)}})</i
         >...
+
+        <span v-if="dispatchServer.error" class="badge alert">Error</span> see
+        log below.
+
         <ul class="accordion">
           <div v-for="kind in logKinds">
             <li
@@ -203,10 +209,10 @@
           settings: {},
         },
         async created() {
-          this.action = this.getHashParams().action || 'dashboard';
+          this.action = this.getQueryParams().action || 'dashboard';
 
           if (this.action == 'dispatch') {
-            const serverId = this.getHashParams().server;
+            const serverId = this.getQueryParams().serverid;
             this.pollServer(serverId);
             setInterval(() => {
               this.pollServer(serverId);
@@ -371,6 +377,9 @@
               window.location.host
             }/api/dispatch?cloneurl=${encodeURI(cloneUrl)}&branch=${branch}`;
           },
+          getActionDispatchLink(serverId) {
+            return `?action=dispatch&serverid=${serverId}`;
+          },
           onClickDispatch(server) {
             document.location.href = this.getDispatchLink(
               server.cloneUrl,
@@ -383,17 +392,10 @@
           serverUrl(server) {
             return `${window.location.protocol}//${window.location.hostname}:${server.port}`;
           },
-          getHashParams() {
-            const hashParams = {};
-            var e,
-              a = /\+/g, // Regex for replacing addition symbol with a space
-              r = /([^&;=]+)=?([^&;]*)/g,
-              d = function (s) {
-                return decodeURIComponent(s.replace(a, ' '));
-              },
-              q = window.location.hash.substring(1);
-            while ((e = r.exec(q))) hashParams[d(e[1])] = d(e[2]);
-            return hashParams;
+          getQueryParams() {
+            return new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
           },
           safeHtml(str) {
             var p = document.createElement('p');

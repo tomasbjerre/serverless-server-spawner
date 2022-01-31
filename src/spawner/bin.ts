@@ -37,7 +37,7 @@ const program = new Command()
   )
   .option(
     '-bbsu, --bitbucket-server-url <url>',
-    'Bitbucket Server base URL to use for REST integration'
+    'Bitbucket Server to use for REST integration (https://bbs/rest/api/latest)'
   )
   .option(
     '-bbsp, --bitbucket-server-projects <projects>',

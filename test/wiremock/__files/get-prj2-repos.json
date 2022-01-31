@@ -31,7 +31,6 @@
         }
       },
       "public": true,
-      "cloneUrl": "https://github.com/tomasbjerre/serverless-server-spawner-demo-app.git",
       "link": {
         "url": "http://link/to/repository",
         "rel": "self"

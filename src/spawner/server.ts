@@ -75,7 +75,9 @@ export async function run(settings: ServerSettings) {
       serverId = workspace.createServer(cloneUrl, branch);
       spawnServer(serverId, settings, workspace);
     }
-    res.redirect(`${settings.dashboardUrl}#action=dispatch&server=${serverId}`);
+    res.redirect(
+      `${settings.dashboardUrl}?action=dispatch&serverid=${serverId}`
+    );
   });
 
   app.get('/api/settings', function (req: Request, res: Response) {
