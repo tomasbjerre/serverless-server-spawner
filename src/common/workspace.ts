@@ -165,12 +165,14 @@ export class Workspace {
     }
   }
 
-  public async stopandremoveallservers() {
+  public stopAllServers() {
     console.log(`Killing any spawned processes in ${this.folder} ...`);
     for (let server of this.getServers()) {
       this.stopServer(server.id);
-      await this.removeServer(server.id);
     }
+  }
+
+  public removeWorkspace() {
     console.log(`Emptying ${this.folder} ...`);
     fsextra.emptyDirSync(this.folder);
     console.log(`Emptying done`);

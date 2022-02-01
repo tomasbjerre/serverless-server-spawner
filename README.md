@@ -187,12 +187,6 @@ Clear all caches.
 POST /api/clearcache
 ```
 
-Stop all servers and cleanup workspace.
-
-```
-POST /api/stopandremoveallservers
-```
-
 Get settings used, like port range. So that you can calculate available ports.
 
 ```

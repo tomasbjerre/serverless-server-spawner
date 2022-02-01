@@ -39,7 +39,8 @@ export async function run(settings: ServerSettings) {
   );
 
   if (settings.cleanup) {
-    await workspace.stopandremoveallservers();
+    workspace.stopAllServers();
+    workspace.removeWorkspace();
   }
 
   const integrationCache = new NodeCache({
@@ -191,14 +192,6 @@ export async function run(settings: ServerSettings) {
     integrationCache.flushAll();
     res.json({});
   });
-
-  app.post(
-    '/api/stopandremoveallservers',
-    async function (req: Request, res: Response) {
-      await workspace.stopandremoveallservers();
-      res.json({});
-    }
-  );
 
   app.use(express.static(path.join(__dirname, '..', '..', 'lib', 'public')));
   app.get('*', (req: Request, res: Response) => {
