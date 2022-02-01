@@ -33,12 +33,12 @@
   "links": {
     "clone": [
       {
-        "href": "https://github.com/tomasbjerre/serverless-server-spawner-demo-app.git",
-        "name": "http"
+        "href": "git@github.com:tomasbjerre/serverless-server-spawner-demo-app.git",
+        "name": "ssh"
       },
       {
-        "href": "ssh://git@<baseURL>/PRJ1/my-repo-prj1.git",
-        "name": "ssh"
+        "href": "https://github.com/tomasbjerre/serverless-server-spawner-demo-app.git",
+        "name": "http"
       }
     ],
     "self": [

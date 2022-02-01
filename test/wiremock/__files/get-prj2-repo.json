@@ -37,7 +37,7 @@
         "name": "http"
       },
       {
-        "href": "ssh://git@<baseURL>/PRJ2/my-repo-prj2.git",
+        "href": "git@github.com:tomasbjerre/serverless-server-spawner-demo-app.git",
         "name": "ssh"
       }
     ],

@@ -104,7 +104,9 @@ class BitbucketService extends GitService {
         return {
           id: repoResponse.data.slug,
           branch: branch.displayId,
-          cloneUrl: repoResponse.data.links.clone[0].href,
+          cloneUrl: repoResponse.data.links.clone //
+            // Sort ssh before https
+            .sort((a: any, b: any) => b.name.localeCompare(a.name))[0].href,
         } as CloneUrl;
       })
       .sort((a: CloneUrl, b: CloneUrl) =>
