@@ -55,8 +55,13 @@ class BitbucketService extends GitService {
   }
 
   async getProjects(projectKeys: string[]): Promise<CloneUrlCategoryItem[]> {
-    const reposUrl = `${this.settings.url}/projects?limit=9999`;
-    const response = await axios.get(reposUrl, this.config);
+    const projectsUrl = `${this.settings.url}/projects?limit=9999`;
+    const response = await axios.get(projectsUrl, this.config);
+    if (response.data.values.length == 0) {
+      console.warn(
+        `No projects returned from ${projectsUrl}. Perhaps the personalAccessToken is incorrectly configured.`
+      );
+    }
     return response.data.values
       .filter(
         (it: any) =>
