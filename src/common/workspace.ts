@@ -150,7 +150,7 @@ export class Workspace {
     return serverId;
   }
 
-  public async stopAndRemove(serverId: ServerId) {
+  public stopServer(serverId: ServerId) {
     console.log(`stopping server ${serverId}`);
     for (let state of ['run', 'prepare', 'spawn', 'clone'] as ServerLogFile[]) {
       const pid = this.getServerPid(serverId, state);
@@ -163,13 +163,13 @@ export class Workspace {
         }
       }
     }
-    this.removeServer(serverId);
   }
 
   public async stopandremoveallservers() {
     console.log(`Killing any spawned processes in ${this.folder} ...`);
     for (let server of this.getServers()) {
-      await this.stopAndRemove(server.id);
+      this.stopServer(server.id);
+      await this.removeServer(server.id);
     }
     console.log(`Emptying ${this.folder} ...`);
     fsextra.emptyDirSync(this.folder);

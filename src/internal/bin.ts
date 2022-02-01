@@ -90,7 +90,7 @@ async function findFreePort(min: number, max: number): Promise<number> {
         .find((it) => it.port == candidatePort);
       if (takenByOtherServer) {
         console.log(
-          `Port ${candidatePort} will be used by other server ${takenByOtherServer}`
+          `Port ${candidatePort} will be used by other server ${takenByOtherServer.id}`
         );
       } else {
         console.log(`Acquired port ${candidatePort}`);
@@ -125,7 +125,13 @@ if (program.opts().task == 'spawn') {
     }, timeToLive * 60 * 1000);
   });
 
-  process.on('exit', (code) => {
+  process.on('exit', () => {
+    console.log(`Exiting spawned process`);
+    workspace.removeServer(serverId);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log(`SIGTERM spawned process`);
     workspace.removeServer(serverId);
   });
 

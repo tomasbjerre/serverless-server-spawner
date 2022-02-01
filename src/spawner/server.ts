@@ -105,7 +105,7 @@ export async function run(settings: ServerSettings) {
 
   app.post('/api/servers/:id/stop', function (req: Request, res: Response) {
     const id = req.params.id as ServerId;
-    workspace.stopAndRemove(id);
+    workspace.stopServer(id);
     res.json({});
   });
 
