@@ -103,8 +103,22 @@ export class Workspace {
 
   public removeServer(id: ServerId): void {
     const serverFolder = path.join(this.folder, id);
-    fsextra.emptyDirSync(serverFolder);
-    fsextra.removeSync(serverFolder);
+    const garbageFolder = path.join(this.folder, `garbage-${id}`);
+    for (let attempt = 0; attempt < 999; attempt++) {
+      try {
+        fs.renameSync(serverFolder, garbageFolder);
+        break;
+      } catch (e) {
+        const errMsg = `was unable to move ${serverFolder} to ${garbageFolder}, attempt: ${attempt}. ${e}`;
+        console.error(errMsg);
+        if (attempt == 100) {
+          throw errMsg;
+        }
+      }
+    }
+    console.info(`removing ${garbageFolder}...`);
+    fsextra.emptyDirSync(garbageFolder);
+    fsextra.removeSync(garbageFolder);
   }
 
   public findServer(

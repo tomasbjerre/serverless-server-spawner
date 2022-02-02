@@ -28,7 +28,17 @@ function spawnServer(
     settings.maximumPortNumber,
   ].join(' ');
   const command = `node ${args}`;
-  workspace.spawnServerCommand(serverId, 'spawn', __dirname, command, {}, true);
+  const spawnProcess = workspace.spawnServerCommand(
+    serverId,
+    'spawn',
+    __dirname,
+    command,
+    {},
+    true
+  );
+  spawnProcess.on('close', () => {
+    workspace.removeServer(serverId);
+  });
 }
 
 export async function run(settings: ServerSettings) {

@@ -120,19 +120,16 @@ if (program.opts().task == 'spawn') {
       `Keeping ${process.pid} alive for ${timeToLive} minutes, to make logs availble.`
     );
     setTimeout(() => {
-      workspace.removeServer(serverId);
       kill(process.pid);
     }, timeToLive * 60 * 1000);
   });
 
   process.on('exit', () => {
     console.log(`Exiting spawned process`);
-    workspace.removeServer(serverId);
   });
 
   process.on('SIGTERM', () => {
     console.log(`SIGTERM spawned process`);
-    workspace.removeServer(serverId);
   });
 
   cloneRepo(repoFolder, serverToSpawn);
