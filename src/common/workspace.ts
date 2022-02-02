@@ -161,6 +161,7 @@ export class Workspace {
         } catch (e) {
           console.log(`Was unable to kill ${pid}`, e);
         }
+        return; // the killing will result in the others being exited
       }
     }
   }

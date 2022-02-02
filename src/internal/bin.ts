@@ -154,8 +154,11 @@ if (program.opts().task == 'spawn') {
       matched.prepareCommand,
       { env: { ...process.env } }
     );
-    prepareServerProcess.on('close', () => {
+    prepareServerProcess.on('close', (code: number) => {
       console.log(`Preparation done with '${matched.prepareCommand}'`);
+      if (code !== 0) {
+        throw `Error during preparation`;
+      }
       eventEmitter.emit('success');
     });
 
@@ -183,7 +186,7 @@ if (program.opts().task == 'spawn') {
         `Will kill '${serverToSpawn.name}' with pid ${spawnedServerProcess.pid} after ${timeToLive} minutes`
       );
 
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         console.log(
           `Killing spawned server ${spawnedServerProcess.pid} after ${timeToLive} minutes`
         );
@@ -191,6 +194,11 @@ if (program.opts().task == 'spawn') {
           console.log(err);
         });
       }, timeToLive * 60 * 1000);
+
+      spawnedServerProcess.on('close', () => {
+        console.log(`spawned process closed, cancelling timeout`);
+        clearTimeout(timeout);
+      });
     });
   });
 }
