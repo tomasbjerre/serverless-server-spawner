@@ -183,7 +183,8 @@ export class Workspace {
     kind: ServerLogFile,
     folder: string,
     command: string,
-    opts: any
+    opts: any,
+    pipeStderr: boolean = false
   ): any {
     const logFile = this.getServerLogFile(serverId, kind);
     const pidFile = this.getServerPidFile(serverId, kind);
@@ -192,6 +193,6 @@ export class Workspace {
       cwd: folder,
       ...opts,
     };
-    return spawnProcess(command, [], logFile, pidFile, allOpts);
+    return spawnProcess(command, [], logFile, pidFile, allOpts, pipeStderr);
   }
 }

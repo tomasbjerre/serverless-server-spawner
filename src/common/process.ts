@@ -21,7 +21,8 @@ export function spawnProcess(
   args: any[],
   logFile: string,
   pidFile: string,
-  opts: any = {}
+  opts: any = {},
+  pipeStderr: boolean = false
 ): any {
   console.log(`Spawning '${command}' and logging to ${logFile} in ${opts.cwd}`);
   const logStream = fs.createWriteStream(logFile, { flags: 'a' });
@@ -29,7 +30,9 @@ export function spawnProcess(
   console.log(`Storing PID of '${command}' as ${p.pid} in ${pidFile}`);
   fs.writeFileSync(pidFile, `${p.pid}`);
   p.stdout.pipe(logStream);
-  p.stderr.pipe(process.stderr);
+  if (pipeStderr) {
+    p.stderr.pipe(process.stderr);
+  }
   p.stderr.pipe(logStream);
   p.on('close', () => {
     console.log(`Ended '${command}', removing ${pidFile}`);
