@@ -45,9 +45,18 @@ const workspace = new Workspace(
   program.opts().matchersFolder
 );
 const timeToLive = parseInt(program.opts().timeToLive);
+const timeToDie = Date.now() + timeToLive * 60 * 1000;
 const matchersFolder = program.opts().matchersFolder;
 const minimumPortNumber = parseInt(program.opts().minimumPortNumber);
 const maximumPortNumber = parseInt(program.opts().maximumPortNumber);
+
+function timeLeft() {
+  const millisLeft = timeToDie - Date.now();
+  if (millisLeft > 0) {
+    return millisLeft;
+  }
+  return 0;
+}
 
 function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
   const p = spawnProcess(
@@ -121,7 +130,7 @@ if (program.opts().task == 'spawn') {
     );
     setTimeout(() => {
       kill(process.pid);
-    }, timeToLive * 60 * 1000);
+    }, timeLeft());
   });
 
   process.on('exit', () => {
@@ -190,7 +199,7 @@ if (program.opts().task == 'spawn') {
         kill(spawnedServerProcess.pid, 'SIGKILL', function (err: Error) {
           console.log(err);
         });
-      }, timeToLive * 60 * 1000);
+      }, timeLeft());
 
       spawnedServerProcess.on('close', () => {
         console.log(`spawned process closed, cancelling timeout`);

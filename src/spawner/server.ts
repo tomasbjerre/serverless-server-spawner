@@ -4,6 +4,26 @@ import NodeCache from 'node-cache';
 import { Workspace } from '../common/workspace';
 import { ServerId, ServerLogFile, ServerSettings } from '../common/Model';
 import { GitService } from '../common/GitService';
+import { spawn } from 'child_process';
+
+function removeServer(serverId: ServerId, workspace: string) {
+  const args = [
+    path.join(__dirname, '..', 'internal', 'removeServer.js'),
+    '--workspace',
+    workspace,
+    '--server',
+    serverId,
+  ].join(' ');
+  const command = `node ${args}`;
+
+  const opts = {
+    shell: true,
+    cwd: __dirname,
+  };
+  const p = spawn(command, [], opts);
+  p.stderr.pipe(process.stderr);
+  p.stdout.pipe(process.stdout);
+}
 
 function spawnServer(
   serverId: ServerId,
@@ -11,7 +31,7 @@ function spawnServer(
   workspace: Workspace
 ) {
   const args = [
-    path.join(__dirname, '..', 'internal', 'bin.js'),
+    path.join(__dirname, '..', 'internal', 'spawn.js'),
     '--workspace',
     settings.workspace,
     '--matchers-folder',
@@ -37,15 +57,20 @@ function spawnServer(
     true
   );
   spawnProcess.on('close', () => {
-    workspace.removeServer(serverId);
+    removeServer(serverId, settings.workspace);
   });
 }
 
 export async function run(settings: ServerSettings) {
+  const timeToLiveCache = new NodeCache({
+    stdTTL: settings.timeToLive * 60,
+  });
+
   const workspace = new Workspace(
     settings.workspace,
     settings.timeToLive,
-    settings.matchersFolder
+    settings.matchersFolder,
+    timeToLiveCache
   );
 
   if (settings.cleanup) {

@@ -10,6 +10,7 @@ import {
 } from './Model';
 import { randomUUID, validateUuid, getMatched } from './common';
 import { processExists, spawnProcess } from './process';
+import NodeCache from 'node-cache';
 var kill = require('tree-kill');
 
 const SERVER_FILE = 'server.json';
@@ -19,10 +20,31 @@ export class Workspace {
   constructor(
     private folder: string,
     private timeToLive: number,
-    private matchersFolder: string
+    private matchersFolder: string,
+    private timeToLiveCache: NodeCache | undefined = undefined
   ) {
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder);
+    }
+  }
+
+  /**
+   * Keep memory-cache of when servers are ended. To avoid
+   * FS interaction on ended servers, causing locks on Windows.
+   */
+  private isEnded(serverId: ServerId): boolean {
+    if (!this.timeToLiveCache) {
+      return false;
+    }
+    const endTime = this.timeToLiveCache.has(serverId)
+      ? (this.timeToLiveCache.get(serverId) as number) || 0
+      : 0;
+    return endTime < Date.now();
+  }
+
+  private setEndTimestamp(serverId: ServerId, endTimestamp: number): void {
+    if (this.timeToLiveCache) {
+      this.timeToLiveCache.set(serverId, endTimestamp);
     }
   }
 
@@ -30,6 +52,7 @@ export class Workspace {
     return fs
       .readdirSync(this.folder)
       .filter((it) => validateUuid(it))
+      .filter((it) => !this.isEnded(it))
       .map((it) => path.join(this.folder, it, SERVER_FILE))
       .filter((it) => fs.existsSync(it))
       .map((it) => fs.readFileSync(it, 'utf-8'))
@@ -49,6 +72,10 @@ export class Workspace {
   }
 
   public isReady(server: Server): boolean {
+    if (this.isEnded(server.id)) {
+      console.log(`ended server ${server.id} not ready`);
+      return false;
+    }
     const repoFolder = this.getServerRepoFolder(server.id);
     if (server.state == 'run') {
       const matched = getMatched(this.matchersFolder, repoFolder);
@@ -79,6 +106,10 @@ export class Workspace {
   }
 
   public getServerLog(id: ServerId, kind: ServerLogFile): string {
+    if (this.isEnded(id)) {
+      console.log(`ended server ${id} empty log`);
+      return '';
+    }
     const serverlogPath = this.getServerLogFile(id, kind);
     if (fs.existsSync(serverlogPath)) {
       return fs.readFileSync(serverlogPath).toString('utf8');
@@ -91,6 +122,10 @@ export class Workspace {
   }
 
   public getServerPid(id: ServerId, kind: ServerLogFile): ProcessId {
+    if (this.isEnded(id)) {
+      console.log(`ended server ${id} no pid`);
+      return -1;
+    }
     const pidFile = this.getServerPidFile(id, kind);
     if (fs.existsSync(pidFile)) {
       const pid = parseInt(fs.readFileSync(pidFile, 'utf8'));
@@ -99,26 +134,6 @@ export class Workspace {
       }
     }
     return -1;
-  }
-
-  public removeServer(id: ServerId): void {
-    const serverFolder = path.join(this.folder, id);
-    const garbageFolder = path.join(this.folder, `garbage-${id}`);
-    for (let attempt = 0; attempt < 999; attempt++) {
-      try {
-        fs.renameSync(serverFolder, garbageFolder);
-        break;
-      } catch (e) {
-        const errMsg = `was unable to move ${serverFolder} to ${garbageFolder}, attempt: ${attempt}. ${e}`;
-        console.error(errMsg);
-        if (attempt == 100) {
-          throw errMsg;
-        }
-      }
-    }
-    console.info(`removing ${garbageFolder}...`);
-    fsextra.emptyDirSync(garbageFolder);
-    fsextra.removeSync(garbageFolder);
   }
 
   public findServer(
@@ -143,6 +158,7 @@ export class Workspace {
   public createServer(cloneUrl: string, branch: string): ServerId {
     const serverId = randomUUID();
     const serverFolder = path.join(this.folder, serverId);
+    const endTimestamp = Date.now() + this.timeToLive * 60 * 1000;
     fs.mkdirSync(serverFolder);
     const repo: Server = {
       cloneUrl,
@@ -150,7 +166,7 @@ export class Workspace {
       id: serverId,
       name: '',
       port: undefined,
-      endTimestamp: Date.now() + this.timeToLive * 60 * 1000,
+      endTimestamp,
       startTimestamp: Date.now(),
       revision: undefined,
       error: false,
@@ -161,10 +177,15 @@ export class Workspace {
     const filename = path.join(serverFolder, SERVER_FILE);
     fs.writeFileSync(filename, JSON.stringify(repo, null, 4));
     console.log(`created ${filename}`);
+    this.setEndTimestamp(serverId, endTimestamp);
     return serverId;
   }
 
   public stopServer(serverId: ServerId) {
+    if (this.isEnded(serverId)) {
+      console.log(`Not stopping ended server ${serverId}`);
+      return;
+    }
     console.log(`stopping server ${serverId}`);
     for (let state of ['run', 'prepare', 'spawn', 'clone'] as ServerLogFile[]) {
       const pid = this.getServerPid(serverId, state);
