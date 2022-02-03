@@ -62,8 +62,9 @@ function spawnServer(
 }
 
 export async function run(settings: ServerSettings) {
+  const timeToLiveCacheExtraSeconds = 60 * 20;
   const timeToLiveCache = new NodeCache({
-    stdTTL: settings.timeToLive * 60,
+    stdTTL: settings.timeToLive * 60 + timeToLiveCacheExtraSeconds,
   });
 
   const workspace = new Workspace(
@@ -102,7 +103,7 @@ export async function run(settings: ServerSettings) {
   app.get('/api/dispatch', function (req: Request, res: Response) {
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
-    let serverId = workspace.findServer(
+    let serverId = workspace.findServerByCloneUrlAndBranch(
       cloneUrl,
       branch,
       settings.minimumSecondsBetweenDispatch
@@ -134,9 +135,13 @@ export async function run(settings: ServerSettings) {
   app.get('/api/servers/:id', async function (req: Request, res: Response) {
     const id = req.params.id as string;
     const server = await getCachedOrFetch(shortCache, `server-${id}`, () =>
-      workspace.getServer(id)
+      workspace.findServer(id)
     );
-    res.json(server);
+    if (server) {
+      res.json(server);
+    } else {
+      res.sendStatus(404);
+    }
   });
 
   app.post('/api/servers/:id/stop', function (req: Request, res: Response) {

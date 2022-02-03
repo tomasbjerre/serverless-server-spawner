@@ -299,25 +299,29 @@
             );
           },
           pollServer: async function (serverId) {
-            this.dispatchServer = (
-              await axios.get(`/api/servers/${serverId}`)
-            ).data;
-            for (let kind of this.logKinds) {
-              const content = (
-                await axios.get(`/api/servers/${serverId}/log/${kind}`)
+            try {
+              this.dispatchServer = (
+                await axios.get(`/api/servers/${serverId}`)
               ).data;
-              Vue.set(
-                this.dispatchLog,
-                kind,
-                this.safeHtml(content).replace(/(?:\r\n|\r|\n)/g, '<br>')
-              );
-            }
-            if (
-              this.dispatchServer.state == 'run' &&
-              this.dispatchServer.ready
-            ) {
-              const serverUrl = this.serverUrl(this.dispatchServer);
-              document.location.href = serverUrl;
+              for (let kind of this.logKinds) {
+                const content = (
+                  await axios.get(`/api/servers/${serverId}/log/${kind}`)
+                ).data;
+                Vue.set(
+                  this.dispatchLog,
+                  kind,
+                  this.safeHtml(content).replace(/(?:\r\n|\r|\n)/g, '<br>')
+                );
+              }
+              if (
+                this.dispatchServer.state == 'run' &&
+                this.dispatchServer.ready
+              ) {
+                const serverUrl = this.serverUrl(this.dispatchServer);
+                document.location.href = serverUrl;
+              }
+            } catch (e) {
+              console.log(e);
             }
           },
           pollServers: async function () {

@@ -85,8 +85,12 @@ export class Workspace {
     return false;
   }
 
+  public findServer(id: ServerId): Server | undefined {
+    return this.getServers().find((it) => it.id == id);
+  }
+
   public getServer(id: ServerId): Server {
-    const found = this.getServers().find((it) => it.id == id);
+    const found = this.findServer(id);
     if (found) {
       return found;
     }
@@ -136,7 +140,7 @@ export class Workspace {
     return -1;
   }
 
-  public findServer(
+  public findServerByCloneUrlAndBranch(
     cloneUrl: string,
     branch: string,
     minimumSecondsBetweenDispatch: number
