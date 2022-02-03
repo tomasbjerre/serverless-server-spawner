@@ -62,7 +62,7 @@ function spawnServer(
 }
 
 export async function run(settings: ServerSettings) {
-  const timeToLiveCacheExtraSeconds = 60 * 20;
+  const timeToLiveCacheExtraSeconds = 60 * 60 * 2;
   const timeToLiveCache = new NodeCache({
     stdTTL: settings.timeToLive * 60 + timeToLiveCacheExtraSeconds,
   });
