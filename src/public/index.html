@@ -19,6 +19,13 @@
   </head>
   <body>
     <div id="app">
+      <div v-if="action == 'no-available-ports'">
+        <p>
+          <b>Cannot spawn new server, no available ports!</b>
+        </p>
+
+        <a href="/">Back to servers</a>
+      </div>
       <div v-if="action == 'dashboard'">
         <div v-if="servers.length == 0">
           No servers running. Dispatch a server by browsing to
@@ -205,6 +212,7 @@
           cloneUrl: undefined,
           branch: undefined,
           settings: {},
+          loadedTimestamp: Date.now(),
         },
         async created() {
           this.action = this.getQueryParams().action || 'dashboard';

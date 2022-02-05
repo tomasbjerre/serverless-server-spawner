@@ -2,7 +2,6 @@
 
 import fs from 'fs';
 import path from 'path';
-const portastic = require('portastic');
 import { Command, Option } from 'commander';
 import { getMatched, getGitRevision } from '../common/common';
 import { Workspace } from '../common/workspace';
@@ -85,33 +84,6 @@ function cloneRepo(cloneFolder: string, serverToSpawn: Server) {
   });
 }
 
-async function findFreePort(min: number, max: number): Promise<number> {
-  const scope = max - min;
-  const attempts = scope * 2;
-  let randomPortInScope = Math.round(Math.random() * (max - min + 1));
-  for (let i = 0; i <= attempts; i++) {
-    const candidatePort = min + (randomPortInScope++ % scope);
-    console.log(`Trying to acquire port ${candidatePort}`);
-    const available = await portastic.test(candidatePort);
-    if (available) {
-      const takenByOtherServer = workspace
-        .getServers()
-        .find((it) => it.port == candidatePort);
-      if (takenByOtherServer) {
-        console.log(
-          `Port ${candidatePort} will be used by other server ${takenByOtherServer.id}`
-        );
-      } else {
-        console.log(`Acquired port ${candidatePort}`);
-        return candidatePort;
-      }
-    } else {
-      console.log(`Port ${candidatePort} is used`);
-    }
-  }
-  throw `No available ports between ${min} and ${max}`;
-}
-
 if (program.opts().task == 'spawn') {
   const serverId = program.opts().server;
   const serverToSpawn = workspace.getServer(serverId);
@@ -169,7 +141,7 @@ if (program.opts().task == 'spawn') {
     });
 
     eventEmitter.once('success', async () => {
-      const portNumber = await findFreePort(
+      const portNumber = await workspace.findFreePort(
         minimumPortNumber,
         maximumPortNumber
       );

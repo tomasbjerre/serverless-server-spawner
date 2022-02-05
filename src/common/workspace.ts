@@ -12,6 +12,7 @@ import { randomUUID, validateUuid, getMatched } from './common';
 import { processExists, spawnProcess } from './process';
 import NodeCache from 'node-cache';
 var kill = require('tree-kill');
+const portastic = require('portastic');
 
 const SERVER_FILE = 'server.json';
 const REPO_FOLDER = 'repo';
@@ -234,5 +235,36 @@ export class Workspace {
       ...opts,
     };
     return spawnProcess(command, [], logFile, pidFile, allOpts, pipeStderr);
+  }
+
+  public hasAvailablePorts(minPort: number, maxPort: number): boolean {
+    return (
+      this.getServers().filter((it) => !it.error).length < maxPort - minPort
+    );
+  }
+
+  public async findFreePort(min: number, max: number): Promise<number> {
+    const scope = max - min;
+    const attempts = scope * 2;
+    let randomPortInScope = Math.round(Math.random() * (max - min + 1));
+    for (let i = 0; i <= attempts; i++) {
+      const candidatePort = min + (randomPortInScope++ % scope);
+      console.log(`Trying to acquire port ${candidatePort}`);
+      const available = await portastic.test(candidatePort);
+      if (available) {
+        const takenByOtherServer = this.getServers().find(
+          (it) => it.port == candidatePort
+        );
+        if (takenByOtherServer) {
+          // console.log(`Port ${candidatePort} will be used by other server ${takenByOtherServer.id}`);
+        } else {
+          // console.log(`Found free port ${candidatePort}`);
+          return candidatePort;
+        }
+      } else {
+        // console.log(`Port ${candidatePort} is used`);
+      }
+    }
+    throw `No available ports between ${min} and ${max}`;
   }
 }

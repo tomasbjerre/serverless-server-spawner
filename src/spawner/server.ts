@@ -101,6 +101,15 @@ export async function run(settings: ServerSettings) {
 
   const app = express();
   app.get('/api/dispatch', function (req: Request, res: Response) {
+    if (
+      !workspace.hasAvailablePorts(
+        settings.minimumPortNumber,
+        settings.maximumPortNumber
+      )
+    ) {
+      res.redirect(`${settings.dashboardUrl}?action=no-available-ports`);
+      return;
+    }
     const cloneUrl = req.query.cloneurl as string;
     const branch = req.query.branch as string;
     let serverId = workspace.findServerByCloneUrlAndBranch(
