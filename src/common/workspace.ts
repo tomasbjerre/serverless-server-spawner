@@ -151,7 +151,7 @@ export class Workspace {
         const age = (Date.now() - server.startTimestamp) / 1000;
         if (age < minimumSecondsBetweenDispatch) {
           console.log(
-            `Using existing server ${server.id} of age ${age} because it is less than ${minimumSecondsBetweenDispatch} minutes old.`
+            `Using existing server ${server.id} of age ${age} because it is less than ${minimumSecondsBetweenDispatch} seconds old.`
           );
           return server.id;
         }
