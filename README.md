@@ -104,11 +104,12 @@ npx serverless-server-spawner \
 
 ## Command line arguments
 
+<!-- Commander help //-->
+
 ```shell
-Usage: npx serverless-server-spawner [options]
+Usage:  serverless-server-spawner [options]
 
 Options:
-  -V, --version                                        output the version number
   -ws, --workspace <folder>                            Filesystem to work with.
   -mf, --matchers-folder <folder>                      Folder containing matchers.
   -p, --port <number>                                  Server port to use (default: "8080")
@@ -204,3 +205,4 @@ npm install \
  --matchers-folder /home/bjerre/workspace/serverless/serverless-sandbox/matchers \
  --time-to-live 1
 ```
+

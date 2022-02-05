@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { updateReadme } from './updateReadme';
 import { run } from './server';
 import { Command } from 'commander';
 import { BitbucketServer } from '../common/Model';
@@ -18,6 +19,7 @@ function commaSeparatedList(value: string) {
 
 const program = new Command()
   .version(pkgJson.version)
+  .command(pkgJson.name)
   .option('-ws, --workspace <folder>', 'Filesystem to work with.')
   .option('-mf, --matchers-folder <folder>', 'Folder containing matchers.')
   .option('-p, --port <number>', 'Server port to use', '8080')
@@ -68,8 +70,10 @@ const program = new Command()
     'Minimum time between spawning new servers from same url and branch',
     '10'
   );
-program.parse(process.argv);
 
+updateReadme(program);
+
+program.parse(process.argv);
 const port = program.opts().port;
 const dashboardUrl = program.opts().dashboardUrl;
 const workspace =
