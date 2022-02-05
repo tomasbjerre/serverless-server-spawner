@@ -12,7 +12,12 @@ const program = new Command()
 program.parse(process.argv);
 
 const serverFolder = path.join(program.opts().workspace, program.opts().server);
+const garbageFolder = path.join(
+  program.opts().workspace,
+  `removing-${program.opts().server}`
+);
 console.info(`removing ${serverFolder}...`);
-fsextra.emptyDirSync(serverFolder);
-fsextra.removeSync(serverFolder);
+fsextra.renameSync(serverFolder, garbageFolder);
+fsextra.emptyDirSync(garbageFolder);
+fsextra.removeSync(garbageFolder);
 console.info(`done removing ${serverFolder}`);
