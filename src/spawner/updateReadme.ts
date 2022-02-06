@@ -7,7 +7,7 @@ export function updateReadme(command: Command) {
   }
   const textToReplace = `<!-- Commander help //-->`;
   const fileToUpdate = `README.md`;
-  const helpText = new Help().formatHelp(command, new Help());
+  const helpText = command.helpInformation();
   const fileToUpdateContent = fs.readFileSync(fileToUpdate, 'utf-8');
   let updatedFileContent = ``;
   let updateAreaFound = false;
